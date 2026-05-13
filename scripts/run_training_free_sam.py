@@ -29,6 +29,8 @@ from PIL import Image
 
 sys.path.insert(0, "/home/ubuntu/unifying-ptq")
 sys.path.insert(0, "/home/ubuntu/unifying-ptq/FlatQuant")
+# Bypass the mmdet-2.x wrapper __init__.py by importing segment_anything directly
+sys.path.insert(0, "/home/ubuntu/unifying-ptq/projects/instance_segment_anything/models")
 
 from flatquant.baselines.rtn import _quantize_tensor_uniform, _quantize_per_channel_with_dbaf
 
@@ -37,8 +39,8 @@ COCO_ROOT = "/home/ubuntu/unifying-ptq/data/coco"
 
 
 def load_sam(model_type: str = "vit_b", checkpoint: str = "/home/ubuntu/unifying-ptq/ckpt/sam_vit_b_01ec64.pth"):
-    """Load SAM from the vendored segment_anything package."""
-    from projects.instance_segment_anything.models.segment_anything import sam_model_registry, SamPredictor
+    """Load SAM from the vendored segment_anything package (mmdet-free)."""
+    from segment_anything import sam_model_registry, SamPredictor
     sam = sam_model_registry[model_type](checkpoint=checkpoint)
     sam.eval().cuda()
     return SamPredictor(sam), sam
