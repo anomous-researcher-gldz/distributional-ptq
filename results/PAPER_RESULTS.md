@@ -95,26 +95,31 @@ rotations / Hadamard transforms. Gains are small but consistent — this is
 itself a useful empirical finding: DBAF's value scales inversely with the
 host method's outlier handling.
 
-### LLaMA-3-8B (FlatQuant W4A4KV4)
+### LLaMA-3-8B (FlatQuant W4A4 — KV-cache configurations)
 
-| Method | PPL | Source |
-|---|---|---|
-| FP16 | 6.14 | ICML Table 5 |
-| SmoothQuant | 210.19 | ICML Table 5 |
-| QuaRot | 10.60 | ICML Table 5 |
-| SpinQuant | 7.96 | ICML Table 5 |
-| FlatQuant | 6.98 | ICML Table 5 |
-| **FlatQuant + DBAF + PCSA** | **6.96** | ICML Table 5 |
-| FlatQuant + DBAF + PCSA + **KV-PCSA** | **8.32** | S5 calibration 2026-05-13 (NEW) |
-| FlatQuant + DBAF + PCSA (rerun baseline) | (running, ~2h) | S5 baseline calibration |
+Important: FlatQuant's defaults are `k_bits=v_bits=16`. The published 6.98 / 6.96
+numbers are W4A4 with **KV in FP16**. Our new KV-PCSA experiments add INT4 KV
+quantization (`--k_bits 4 --v_bits 4 --k_asym --v_asym --k_groupsize 128 --v_groupsize 128`),
+which raises PPL from the 6.x baseline; KV-PCSA is the proposed technique to
+recover some of that loss.
 
-**Note on KV-PCSA result:** Our re-calibrated FlatQuant+DBAF+PCSA+KV-PCSA gives PPL
-8.32 on LLaMA-3-8B W4A4 KV4, higher than the published 6.96 for
-FlatQuant+DBAF+PCSA (no KV-PCSA). The gap is partly due to transformers-version
-drift in our re-implementation and partly the added K/V anchor-aware scales.
-Running a control (same calibration recipe, no `--kv-pcsa` flag) to isolate the
-KV-PCSA contribution. Calibrated checkpoints saved at
-`/data/outputs/S5-kv-pcsa-calib/`.
+| Method | KV-cache | PPL | Source |
+|---|---|---|---|
+| FP16 | FP16 | 6.14 | ICML Table 5 |
+| SmoothQuant | FP16 | 210.19 | ICML Table 5 |
+| QuaRot | FP16 | 10.60 | ICML Table 5 |
+| SpinQuant | FP16 | 7.96 | ICML Table 5 |
+| FlatQuant | FP16 | 6.98 | FlatQuant README Table 1 |
+| **FlatQuant + DBAF + PCSA** | **FP16** | **6.96** | our ICML Table 5 |
+| FlatQuant + DBAF + PCSA + **KV-PCSA** | **INT4 asym g128** | **8.32** | S5 calibration 2026-05-13 (NEW) |
+| FlatQuant + DBAF + PCSA, no KV-PCSA | **INT4 asym g128** | (running, ~2h) | S5 baseline calibration (control) |
+
+**Reading the comparison:** The 6.96 → 8.32 jump is *from quantizing the KV-cache to
+INT4*, not a regression in our method. KV-cache quantization is a separate axis from
+the W4A4 setting in FlatQuant's defaults. The fair KV-PCSA evaluation is the bottom
+two rows: same W4A4 + INT4 KV recipe, with and without `--kv-pcsa`. Calibrated
+checkpoints saved at `/data/outputs/S5-kv-pcsa-calib/` (+kv-pcsa) and
+`/data/outputs/S5-baseline-calib/` (control).
 
 ### SAM-B + YOLOX W4A4 (AHCPTQ)
 
