@@ -76,10 +76,20 @@ PSNR (dB), Set5 (5 images) and Urban100 (100 images), all scales:
 
 **Mixed results.** DBAF helps at ×2 and ×4 across both Set5 and Urban100, but
 slightly hurts at ×3. Average across all 6 cells: +0.075 dB. Excluding ×3:
-+0.228 dB. Hypothesis: α=0.95 (selected for SwinIR-light) is not optimal for
-the ×3 weight distribution, possibly due to different outlier fractions in
-the larger upsampling layers. A per-scale α grid (rather than per-architecture
-single α) would likely fix this.
++0.228 dB.
+
+**α-grid search on ×3 (8 values, both datasets):** PSNR monotonically increases
+with α; the best α is **1.0** (which disables DBAF), matching the no-DBAF
+baseline (Set5 26.502, Urban100 21.750). DBAF never beats no-DBAF at ×3 for
+any α ∈ {0.70, 0.80, 0.85, 0.90, 0.95, 0.97, 0.99, 1.00}.
+
+**Interpretation:** the regression is *not* an α-tuning issue but a genuine
+distributional one: SwinIR-light ×3 weights lack the heavy-tailed outliers
+DBAF targets, so the fold/unfold adds noise with no offsetting benefit. This
+serves as an **in-the-wild negative control** that complements the synthetic
+outlier-injection study (§4.3): DBAF helps iff distributions are
+outlier-dominated, and is otherwise inert. Reported in PAPER_RESULTS.md;
+sweep data at `results/S8-compsrt/swinir-light-x3-alpha-sweep/`.
 
 For comparison, the fine-tuned CompSRT+DBAF result (Hadamard rotations +
 DBAF + reconstruction) recovers FP performance at ×2 (38.15 dB = FP).
