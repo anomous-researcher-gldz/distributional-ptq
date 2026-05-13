@@ -300,6 +300,8 @@ def parse_args():
         default='./exp/config66.yaml',
         help='quantization config files')
     parser.add_argument('--local_rank', type=int, default=0)
+    parser.add_argument('--no-dbaf-gate', dest='no_dbaf_gate', action='store_true',
+                        help='Bypass DBAF gate; DBAF fires on every layer (calibration-stability ablation).')
     args = parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(args.local_rank)
@@ -315,6 +317,10 @@ def parse_args():
 def main():
     global logger, specials, bimodal_adjust
     args = parse_args()
+    if getattr(args, 'no_dbaf_gate', False):
+        from ahcptq.quantization.fake_quant import set_no_dbaf_gate
+        set_no_dbaf_gate(True)
+        print("[AHCPTQ] --no-dbaf-gate: DBAF gate bypassed (will fire on every layer)", flush=True)
     brecq = args.brecq
     assert args.out or args.eval or args.format_only or args.show \
         or args.show_dir, \

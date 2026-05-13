@@ -20,6 +20,22 @@ from torch import Tensor
 from typing import Callable, Any, Dict, Iterable, Tuple
 import logging
 logger = logging.getLogger('ahcptq')
+
+# Global override: when True, is_like_normal_plus_3sigma_outliers returns
+# is_like_c=True for every tensor so DBAF fires unconditionally. Used by the
+# --no-dbaf-gate experiments to isolate the gate's contribution from the
+# fold/unfold mechanism. Toggle via set_no_dbaf_gate(True) at the top of
+# the training/inference script.
+_NO_DBAF_GATE = False
+
+
+def set_no_dbaf_gate(value: bool):
+    global _NO_DBAF_GATE
+    _NO_DBAF_GATE = bool(value)
+
+
+def get_no_dbaf_gate() -> bool:
+    return _NO_DBAF_GATE
 # class DBAFState(nn.Module):
 #     def __init__(self, k=3.0):
 #         super().__init__()
@@ -159,7 +175,11 @@ def is_like_normal_plus_3sigma_outliers(
     cond_kurt = (kurt_min <= kurt <= kurt_max)
     cond_frac3 = (frac3_min <= frac3 <= frac3_max)
 
-    is_like_c = bool(cond_skew and cond_kurt and cond_frac3)
+    if _NO_DBAF_GATE:
+        # gate bypass for ablation experiments — always fire DBAF
+        is_like_c = True
+    else:
+        is_like_c = bool(cond_skew and cond_kurt and cond_frac3)
         
 
     return {
