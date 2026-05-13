@@ -1,0 +1,8 @@
+{
+  "model": "qwen25-7b",
+  "baseline": "rtn",
+  "use_dbaf": true,
+  "bits": 4,
+  "wikitext2_ppl": 8.860085487365723,
+  "quant_seconds": 0.4832763671875
+}
