@@ -1,0 +1,43 @@
+--- a/OmniQuant/quantize/omniquant.py
++++ b/OmniQuant/quantize/omniquant.py
+@@ -58,6 +58,10 @@ def omniquant(
+         layers = model.model.layers
+         model.model.embed_tokens = model.model.embed_tokens.to(dev)
+         model.model.norm = model.model.norm.to(dev)
++        # LLaMA-3 adds a top-level rotary_emb with buffers (inv_freq) that must
++        # be on the same device as the inputs to avoid device-mismatch errors.
++        if hasattr(model.model, "rotary_emb"):
++            model.model.rotary_emb = model.model.rotary_emb.to(dev)
+         DecoderLayer = QuantLlamaDecoderLayer
+
+ @@ -148,6 +152,8 @@ def omniquant(
+     if "llama" in args.net.lower() or "mixtral" in args.net.lower():
+         model.model.embed_tokens = model.model.embed_tokens.cpu()
+         model.model.norm = model.model.norm.cpu()
++        if hasattr(model.model, "rotary_emb"):
++            model.model.rotary_emb = model.model.rotary_emb.cpu()
+
+--- a/OmniQuant/models/int_llama_layer.py
++++ b/OmniQuant/models/int_llama_layer.py
+@@ -121,7 +121,13 @@ class QuantLlamaAttention(nn.Module):
+         kv_seq_len = key_states.shape[-2]
+         if past_key_value is not None:
+             kv_seq_len += past_key_value[0].shape[-2]
+-        cos, sin = self.rotary_emb(value_states, seq_len=kv_seq_len)
++        # Support both old (seq_len kwarg) and new (position_ids) rotary_emb APIs
++        # transformers >= 4.38 dropped the seq_len keyword in favour of position_ids
++        try:
++            cos, sin = self.rotary_emb(value_states, seq_len=kv_seq_len)
++        except TypeError:
++            cos, sin = self.rotary_emb(value_states, position_ids)
+         query_states, key_states = apply_rotary_pos_emb(query_states, key_states, cos, sin, position_ids)
+
+@@ -156,7 +162,11 @@ class QuantLlamaAttention(nn.Module):
+         if attention_mask is not None:
++            # Newer transformers may produce a mask with one extra column; truncate
++            # to kv_seq_len to stay compatible with older OmniQuant logic.
++            if attention_mask.size(-1) > kv_seq_len:
++                attention_mask = attention_mask[..., :kv_seq_len]
+             if attention_mask.size() != (bsz, 1, q_len, kv_seq_len):
+                 raise ValueError(
+                     f"Attention mask should be of size {(bsz, 1, q_len, kv_seq_len)}, but is {attention_mask.size()}"
