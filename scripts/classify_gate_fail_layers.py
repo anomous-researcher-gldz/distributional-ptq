@@ -1,7 +1,11 @@
 """Classify gate-fail layers across all cross-model JSONs into distribution types.
 
-References Wu et al. 2406.06649 taxonomy. Tries to bucket each gate-fail layer
-based on its observed weight (or activation) statistics:
+Buckets each gate-fail layer based on its observed weight (or activation)
+statistics. Taxonomy is built from observed layer statistics in the analyzed
+models (LLaMA, Qwen, SAM, SwinIR); not borrowed from any single prior paper.
+Related prior taxonomy work cited in §2 of the paper: TWEO (Liang 2025) on
+transformer outlier categories; Zhao et al. (2021) on distribution-aware
+adaptive bit-width; Wang et al. (2025) on dual-region quantization.
 
   - gaussian-with-sparse-outliers: gate would have passed (kurt 3-30, skew<=0.7, frac3 in 1e-4..2e-2)
   - post-ReLU asymmetric: skew > 0.7 AND values nearly always >= 0
