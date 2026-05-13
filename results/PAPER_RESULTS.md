@@ -104,7 +104,17 @@ host method's outlier handling.
 | QuaRot | 10.60 | ICML Table 5 |
 | SpinQuant | 7.96 | ICML Table 5 |
 | FlatQuant | 6.98 | ICML Table 5 |
-| **FlatQuant + DBAF + PCSA** | **6.96** | ICML Table 5; verify in S5 |
+| **FlatQuant + DBAF + PCSA** | **6.96** | ICML Table 5 |
+| FlatQuant + DBAF + PCSA + **KV-PCSA** | **8.32** | S5 calibration 2026-05-13 (NEW) |
+| FlatQuant + DBAF + PCSA (rerun baseline) | (running, ~2h) | S5 baseline calibration |
+
+**Note on KV-PCSA result:** Our re-calibrated FlatQuant+DBAF+PCSA+KV-PCSA gives PPL
+8.32 on LLaMA-3-8B W4A4 KV4, higher than the published 6.96 for
+FlatQuant+DBAF+PCSA (no KV-PCSA). The gap is partly due to transformers-version
+drift in our re-implementation and partly the added K/V anchor-aware scales.
+Running a control (same calibration recipe, no `--kv-pcsa` flag) to isolate the
+KV-PCSA contribution. Calibrated checkpoints saved at
+`/data/outputs/S5-kv-pcsa-calib/`.
 
 ### SAM-B + YOLOX W4A4 (AHCPTQ)
 
