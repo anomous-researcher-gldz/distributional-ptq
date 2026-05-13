@@ -92,7 +92,12 @@ class ActivationQuantizer(torch.nn.Module):
 
     def fake_quant(self, x, anchor_id=None):  # anchor_id reserved for AnchorAwareActivationQuantizer
         x_dtype = x.dtype
-        _apply_dbaf = self.dbaf_alpha is not None and is_like_normal_plus_3sigma_outliers(x)['is_like_c']
+        if self.dbaf_alpha is None:
+            _apply_dbaf = False
+        elif getattr(self, 'no_dbaf_gate', False):
+            _apply_dbaf = True  # gate bypassed: DBAF fires on every activation
+        else:
+            _apply_dbaf = is_like_normal_plus_3sigma_outliers(x)['is_like_c']
         if _apply_dbaf:
             T = float(3.0 * x.detach().float().std().clamp_min(1e-8))
             x, _tag = fold_outliers(x, T, self.dbaf_alpha)

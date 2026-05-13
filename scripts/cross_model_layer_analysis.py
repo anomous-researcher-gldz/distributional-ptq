@@ -30,10 +30,13 @@ import torch.nn as nn
 
 sys.path.insert(0, "/home/ubuntu/unifying-ptq")
 sys.path.insert(0, "/home/ubuntu/unifying-ptq/FlatQuant")
+sys.path.insert(0, "/home/ubuntu/unifying-ptq/projects/instance_segment_anything/models")
 from ahcptq.quantization.fake_quant import (
     profile_with_3sigma_outliers, is_like_normal_plus_3sigma_outliers,
 )
 from flatquant.baselines.rtn import _quantize_tensor_uniform, _quantize_per_channel_with_dbaf
+# is_like_normal_plus_3sigma_outliers is already imported above; just re-bind for clarity.
+_w_gate_check = is_like_normal_plus_3sigma_outliers
 
 
 # ----------- Per-tensor analysis -----------
@@ -52,17 +55,32 @@ def tensor_fingerprint(x: torch.Tensor) -> dict:
 
 @torch.no_grad()
 def weight_quant_errors(w_2d: torch.Tensor, bits=4, alpha=0.95) -> dict:
-    """w_2d: [out, fan_in_flat]. Returns RTN and DBAF MSE."""
+    """w_2d: [out, fan_in_flat]. Returns three modes: RTN, DBAF gated, DBAF forced.
+
+    - rtn: per-channel RTN, no DBAF.
+    - dbaf_gated: DBAF only if is_like_normal_plus_3sigma_outliers(w) passes,
+                  else fall back to plain per-channel RTN (mirrors flat_linear.py:61).
+    - dbaf_force: DBAF on every layer regardless of gate.
+    """
     w_f = w_2d.float()
     w_rtn = _quantize_tensor_uniform(w_f, bits, per_channel=True)
-    w_dbaf = _quantize_per_channel_with_dbaf(w_f, bits, alpha=alpha)
-    norm = (w_f.float() ** 2).mean().clamp_min(1e-12)
+    gate = _w_gate_check(w_f)["is_like_c"]
+    if gate:
+        w_dbaf_gated = _quantize_per_channel_with_dbaf(w_f, bits, alpha=alpha)
+    else:
+        w_dbaf_gated = w_rtn
+    w_dbaf_force = _quantize_per_channel_with_dbaf(w_f, bits, alpha=alpha)
+    norm = (w_f ** 2).mean().clamp_min(1e-12).item()
     rtn_mse = ((w_f - w_rtn) ** 2).mean().item()
-    dbaf_mse = ((w_f - w_dbaf) ** 2).mean().item()
-    return {"rtn_mse": rtn_mse, "dbaf_mse": dbaf_mse,
-            "rtn_nmse": rtn_mse / norm.item(),
-            "dbaf_nmse": dbaf_mse / norm.item(),
-            "gain_pct": ((rtn_mse - dbaf_mse) / max(rtn_mse, 1e-12) * 100)}
+    dbaf_gated_mse = ((w_f - w_dbaf_gated) ** 2).mean().item()
+    dbaf_force_mse = ((w_f - w_dbaf_force) ** 2).mean().item()
+    return {
+        "rtn_mse": rtn_mse, "rtn_nmse": rtn_mse / norm,
+        "dbaf_gated_mse": dbaf_gated_mse, "dbaf_gated_nmse": dbaf_gated_mse / norm,
+        "dbaf_force_mse": dbaf_force_mse, "dbaf_force_nmse": dbaf_force_mse / norm,
+        "gain_gated_pct": ((rtn_mse - dbaf_gated_mse) / max(rtn_mse, 1e-12) * 100),
+        "gain_force_pct": ((rtn_mse - dbaf_force_mse) / max(rtn_mse, 1e-12) * 100),
+    }
 
 
 from flatquant.quant_utils import ActivationQuantizer as _ActQ
@@ -128,9 +146,11 @@ def analyze_model(model_name, model_loader, calib_inputs_fn, output_dir, device=
                          "w_kurt": wfp["kurt"], "w_skew": wfp["skew"],
                          "w_frac3": wfp["frac3"], "w_frac4": wfp["frac4"],
                          "w_gate": wfp["dbaf_gate"],
-                         "w_rtn_mse": wqe["rtn_mse"], "w_dbaf_mse": wqe["dbaf_mse"],
-                         "w_rtn_nmse": wqe["rtn_nmse"], "w_dbaf_nmse": wqe["dbaf_nmse"],
-                         "w_gain_pct": wqe["gain_pct"]})
+                         "w_rtn_mse": wqe["rtn_mse"], "w_rtn_nmse": wqe["rtn_nmse"],
+                         "w_dbaf_gated_mse": wqe["dbaf_gated_mse"], "w_dbaf_gated_nmse": wqe["dbaf_gated_nmse"],
+                         "w_dbaf_force_mse": wqe["dbaf_force_mse"], "w_dbaf_force_nmse": wqe["dbaf_force_nmse"],
+                         "w_gain_gated_pct": wqe["gain_gated_pct"],
+                         "w_gain_force_pct": wqe["gain_force_pct"]})
     print(f"[{model_name}] {len(rows)} weight layers analyzed", flush=True)
 
     # 2) Activation hooks.
@@ -201,12 +221,16 @@ def analyze_model(model_name, model_loader, calib_inputs_fn, output_dir, device=
         "w_mean_kurt": safe_mean([r["w_kurt"] for r in rows]),
         "w_mean_frac3": safe_mean([r["w_frac3"] for r in rows]),
         "w_mean_rtn_mse": safe_mean([r["w_rtn_mse"] for r in rows]),
-        "w_mean_dbaf_mse": safe_mean([r["w_dbaf_mse"] for r in rows]),
-        "w_mean_gain_pct": safe_mean([r["w_gain_pct"] for r in rows]),
+        "w_mean_dbaf_gated_mse": safe_mean([r["w_dbaf_gated_mse"] for r in rows]),
+        "w_mean_dbaf_force_mse": safe_mean([r["w_dbaf_force_mse"] for r in rows]),
+        "w_mean_gain_gated_pct": safe_mean([r["w_gain_gated_pct"] for r in rows]),
+        "w_mean_gain_force_pct": safe_mean([r["w_gain_force_pct"] for r in rows]),
         "w_mean_rtn_mse_when_gated":   safe_mean([r["w_rtn_mse"] for r in rows if r["w_gate"]]),
         "w_mean_rtn_mse_when_notgated":safe_mean([r["w_rtn_mse"] for r in rows if not r["w_gate"]]),
-        "w_mean_gain_when_gated":      safe_mean([r["w_gain_pct"] for r in rows if r["w_gate"]]),
-        "w_mean_gain_when_notgated":   safe_mean([r["w_gain_pct"] for r in rows if not r["w_gate"]]),
+        "w_mean_gain_gated_when_gated":    safe_mean([r["w_gain_gated_pct"] for r in rows if r["w_gate"]]),
+        "w_mean_gain_gated_when_notgated": safe_mean([r["w_gain_gated_pct"] for r in rows if not r["w_gate"]]),
+        "w_mean_gain_force_when_gated":    safe_mean([r["w_gain_force_pct"] for r in rows if r["w_gate"]]),
+        "w_mean_gain_force_when_notgated": safe_mean([r["w_gain_force_pct"] for r in rows if not r["w_gate"]]),
         # Activation aggregates (only over observed layers)
         "a_pct_gated": pct_true([r["a_gate"] for r in rows]),
         "a_mean_kurt": safe_mean([r["a_kurt"] for r in rows]),
@@ -345,8 +369,10 @@ def main():
     pathlib.Path(args.out, "summary.json").write_text(json.dumps(summaries, indent=2))
     # Pretty print.
     cols = ["model", "n_layers",
-            "w_pct_gated", "w_mean_gain_pct", "w_mean_gain_when_gated", "w_mean_gain_when_notgated",
-            "a_pct_gated", "a_mean_gain_pct", "a_mean_gain_when_gated", "a_mean_gain_when_notgated"]
+            "w_pct_gated", "w_mean_gain_gated_pct", "w_mean_gain_force_pct",
+            "w_mean_gain_force_when_gated", "w_mean_gain_force_when_notgated",
+            "a_pct_gated", "a_mean_gain_gated_pct", "a_mean_gain_force_pct",
+            "a_mean_gain_force_when_gated", "a_mean_gain_force_when_notgated"]
     print("\n=== SUMMARY ACROSS MODELS ===")
     print(" | ".join(f"{c:>26}" for c in cols))
     for s in summaries:

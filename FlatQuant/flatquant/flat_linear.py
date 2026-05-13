@@ -28,6 +28,8 @@ class FlatQuantizedLinear(nn.Module):
 
         self._eval_mode = False
         self.dbaf_alpha = dbaf_alpha
+        self.no_dbaf_gate = getattr(args, "no_dbaf_gate", False)
+        self.act_quantizer.no_dbaf_gate = self.no_dbaf_gate
 
     def apply_wclip(self, weight):
         wmin, wmax = weight.min(1, keepdim=True)[0], weight.max(1, keepdim=True)[0]
@@ -57,9 +59,20 @@ class FlatQuantizedLinear(nn.Module):
         if out_trans is not None:
             weight = out_trans(weight.T).T
 
-        # DBAF: fold weight outliers if tensor matches normal-with-outliers profile
-        _dbaf_result = is_like_normal_plus_3sigma_outliers(weight) if self.dbaf_alpha is not None else {'is_like_c': False}
-        _dbaf_w = _dbaf_result['is_like_c']
+        # DBAF: fold weight outliers if tensor matches normal-with-outliers profile.
+        # When self.no_dbaf_gate is True, the gate is bypassed and DBAF fires on
+        # every tensor (used to isolate the gate's contribution to end-to-end
+        # task accuracy).
+        if self.dbaf_alpha is None:
+            _dbaf_w = False
+            _dbaf_result = {'is_like_c': False}
+        elif getattr(self, 'no_dbaf_gate', False):
+            _dbaf_result = {'is_like_c': True,
+                            'stats': {'std': float(weight.detach().float().std().clamp_min(1e-8))}}
+            _dbaf_w = True
+        else:
+            _dbaf_result = is_like_normal_plus_3sigma_outliers(weight)
+            _dbaf_w = _dbaf_result['is_like_c']
         _w_tag = None
         _T_w = None
         if _dbaf_w:

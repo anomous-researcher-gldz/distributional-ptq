@@ -101,6 +101,8 @@ def parser_gen():
                         help="Use the inverse method in PyTorch to directly get the inverse matrix rather than SVD.")
     parser.add_argument("--separate_vtrans", default=False, action="store_true",
                         help="Disable the integration of the vtrans transformation.")
+    parser.add_argument("--no-dbaf-gate", dest="no_dbaf_gate", default=False, action="store_true",
+                        help="Bypass is_like_normal_plus_3sigma_outliers gate; DBAF fires on every layer.")
     parser.add_argument("--disable_dbaf", default=False, action="store_true",
                         help="Disable DBAF fold/unfold for ablation experiments.")
     parser.add_argument("--disable_pcsa", default=False, action="store_true",

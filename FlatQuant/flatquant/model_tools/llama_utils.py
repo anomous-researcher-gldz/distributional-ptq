@@ -163,9 +163,17 @@ class FlatQuantLlamaAttention(LlamaAttention):
 
         # DBAF: set fold alpha on all projections (None disables DBAF)
         _dbaf_alpha = None if getattr(args, 'disable_dbaf', False) else 0.99
+        _no_gate = getattr(args, 'no_dbaf_gate', False)
         for proj in [self.q_proj, self.k_proj, self.v_proj, self.o_proj]:
             proj.dbaf_alpha = _dbaf_alpha
+            proj.no_dbaf_gate = _no_gate
             proj.act_quantizer.dbaf_alpha = _dbaf_alpha
+            proj.act_quantizer.no_dbaf_gate = _no_gate
+        # Also propagate to K/V cache activation quantizers if present.
+        for attr in ("k_cache_quantizer", "v_cache_quantizer", "q_cache_quantizer"):
+            q = getattr(self, attr, None)
+            if q is not None:
+                q.no_dbaf_gate = _no_gate
 
         self._ori_mode = False
         self._eval_mode = False
