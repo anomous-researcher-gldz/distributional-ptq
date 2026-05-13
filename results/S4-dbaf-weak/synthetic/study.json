@@ -1,0 +1,149 @@
+[
+  {
+    "outlier_fraction": 0.0,
+    "outlier_magnitude_sigma": 5.0,
+    "mse_rtn": 0.024802032858133316,
+    "mse_rtn_dbaf": 0.02223292738199234,
+    "pct_mse_reduction": 10.358447191954633
+  },
+  {
+    "outlier_fraction": 0.001,
+    "outlier_magnitude_sigma": 5.0,
+    "mse_rtn": 0.0421609990298748,
+    "mse_rtn_dbaf": 0.0343937873840332,
+    "pct_mse_reduction": 18.422740979970236
+  },
+  {
+    "outlier_fraction": 0.005,
+    "outlier_magnitude_sigma": 5.0,
+    "mse_rtn": 0.042324017733335495,
+    "mse_rtn_dbaf": 0.034982986748218536,
+    "pct_mse_reduction": 17.3448348674492
+  },
+  {
+    "outlier_fraction": 0.01,
+    "outlier_magnitude_sigma": 5.0,
+    "mse_rtn": 0.042111560702323914,
+    "mse_rtn_dbaf": 0.03542226925492287,
+    "pct_mse_reduction": 15.884691367023832
+  },
+  {
+    "outlier_fraction": 0.02,
+    "outlier_magnitude_sigma": 5.0,
+    "mse_rtn": 0.04168581962585449,
+    "mse_rtn_dbaf": 0.03624751791357994,
+    "pct_mse_reduction": 13.045927274755066
+  },
+  {
+    "outlier_fraction": 0.05,
+    "outlier_magnitude_sigma": 5.0,
+    "mse_rtn": 0.04041621834039688,
+    "mse_rtn_dbaf": 0.03821563348174095,
+    "pct_mse_reduction": 5.444806439142767
+  },
+  {
+    "outlier_fraction": 0.1,
+    "outlier_magnitude_sigma": 5.0,
+    "mse_rtn": 0.03829547017812729,
+    "mse_rtn_dbaf": 0.03829547017812729,
+    "pct_mse_reduction": 0.0
+  },
+  {
+    "outlier_fraction": 0.0,
+    "outlier_magnitude_sigma": 10.0,
+    "mse_rtn": 0.024802032858133316,
+    "mse_rtn_dbaf": 0.02223292738199234,
+    "pct_mse_reduction": 10.358447191954633
+  },
+  {
+    "outlier_fraction": 0.001,
+    "outlier_magnitude_sigma": 10.0,
+    "mse_rtn": 0.16724203526973724,
+    "mse_rtn_dbaf": 0.11526042968034744,
+    "pct_mse_reduction": 31.081662875933663
+  },
+  {
+    "outlier_fraction": 0.005,
+    "outlier_magnitude_sigma": 10.0,
+    "mse_rtn": 0.16917195916175842,
+    "mse_rtn_dbaf": 0.11985935270786285,
+    "pct_mse_reduction": 29.149397274960897
+  },
+  {
+    "outlier_fraction": 0.01,
+    "outlier_magnitude_sigma": 10.0,
+    "mse_rtn": 0.16831839084625244,
+    "mse_rtn_dbaf": 0.12326021492481232,
+    "pct_mse_reduction": 26.769609485274692
+  },
+  {
+    "outlier_fraction": 0.02,
+    "outlier_magnitude_sigma": 10.0,
+    "mse_rtn": 0.16662254929542542,
+    "mse_rtn_dbaf": 0.12885507941246033,
+    "pct_mse_reduction": 22.66648184334435
+  },
+  {
+    "outlier_fraction": 0.05,
+    "outlier_magnitude_sigma": 10.0,
+    "mse_rtn": 0.1615179181098938,
+    "mse_rtn_dbaf": 0.14056000113487244,
+    "pct_mse_reduction": 12.97559875726109
+  },
+  {
+    "outlier_fraction": 0.1,
+    "outlier_magnitude_sigma": 10.0,
+    "mse_rtn": 0.1530117243528366,
+    "mse_rtn_dbaf": 0.1519315540790558,
+    "pct_mse_reduction": 0.7059395470179851
+  },
+  {
+    "outlier_fraction": 0.0,
+    "outlier_magnitude_sigma": 20.0,
+    "mse_rtn": 0.024802032858133316,
+    "mse_rtn_dbaf": 0.02223292738199234,
+    "pct_mse_reduction": 10.358447191954633
+  },
+  {
+    "outlier_fraction": 0.001,
+    "outlier_magnitude_sigma": 20.0,
+    "mse_rtn": 0.5958120226860046,
+    "mse_rtn_dbaf": 0.4110262095928192,
+    "pct_mse_reduction": 31.014112850584137
+  },
+  {
+    "outlier_fraction": 0.005,
+    "outlier_magnitude_sigma": 20.0,
+    "mse_rtn": 0.603764533996582,
+    "mse_rtn_dbaf": 0.43513810634613037,
+    "pct_mse_reduction": 27.92917075374392
+  },
+  {
+    "outlier_fraction": 0.01,
+    "outlier_magnitude_sigma": 20.0,
+    "mse_rtn": 0.6007108092308044,
+    "mse_rtn_dbaf": 0.4505995213985443,
+    "pct_mse_reduction": 24.988944018582583
+  },
+  {
+    "outlier_fraction": 0.02,
+    "outlier_magnitude_sigma": 20.0,
+    "mse_rtn": 0.594633936882019,
+    "mse_rtn_dbaf": 0.47247350215911865,
+    "pct_mse_reduction": 20.54380470839796
+  },
+  {
+    "outlier_fraction": 0.05,
+    "outlier_magnitude_sigma": 20.0,
+    "mse_rtn": 0.5764080882072449,
+    "mse_rtn_dbaf": 0.5102428197860718,
+    "pct_mse_reduction": 11.478893127083198
+  },
+  {
+    "outlier_fraction": 0.1,
+    "outlier_magnitude_sigma": 20.0,
+    "mse_rtn": 0.5461005568504333,
+    "mse_rtn_dbaf": 0.5380887389183044,
+    "pct_mse_reduction": 1.467095726533601
+  }
+]
