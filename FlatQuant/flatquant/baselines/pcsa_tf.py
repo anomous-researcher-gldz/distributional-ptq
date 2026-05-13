@@ -88,7 +88,7 @@ def apply_pcsa_tf_to_activation(
     state: dict,
     bits: int = 4,
 ) -> torch.Tensor:
-    """Per-prompt asym INT[bits] fake-quantization using anchor-routed scale.
+    """Per-prompt symmetric INT[bits] fake-quantization using anchor-routed scale.
 
     x: [B, ...] activation tensor; desc: [B, D] prompt descriptors.
     Returns: same shape as x, fake-quantized.
