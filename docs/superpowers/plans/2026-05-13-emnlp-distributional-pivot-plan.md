@@ -1267,24 +1267,25 @@ git commit -m "feat(G11): cost-vs-quality figure generator"
 
 - [ ] **Step 1: Draft new abstract**
 
-Replace `/home/ubuntu/paper/emnlp2026/sections/00-abstract.tex` with the reframed abstract (~150 words):
+Replace `/home/ubuntu/paper/emnlp2026/sections/00-abstract.tex` with the reframed abstract (~150 words). Match Table 1's exact two-distribution claim, not a broader taxonomy:
 
 ```latex
-Post-training quantization (PTQ) error is dominated by a small number of
-recurring distribution types that appear across LLM, SAM, and SR
-architectures. Prior work addresses these per-architecture, with rotation-
-based methods for LLMs, channel-aware grouping for SAM, and Hadamard
-transforms for SR. We propose two composable distribution-guided primitives —
-Dual-Band Affine Folding (DBAF) and Prompt-Conditioned Scale Anchoring (PCSA)
-— that target the recurring "sparse outlier + Gaussian core" pattern across
-all three architectures. We show that on hosts with explicit headroom
-(OmniQuant for LLM, AHCPTQ for SAM, 2DQuant for SR), our primitives add
-consistent moderate improvements. On rotation-based hosts (FlatQuant/CompSRT)
-the gain disappears — evidence that the same distributions are being
-absorbed implicitly there. A training-free variant (k-means anchors) makes
-the primitives applicable at zero added calibration cost. Across 7
-architecture/scale combinations and three quantization backbones, the
-contribution is the framework, not the SOTA gap.
+Two distributional pathologies recur across LLM, SAM, and SR
+quantization: dense regions with sparse extreme outliers, and
+input-conditioned distribution shifts. Despite the same pathologies
+appearing across architectures, the field has produced separate
+per-architecture solutions — rotation-based methods for LLMs,
+dual-region quantization for SR CNNs, Hadamard transforms for SR
+transformers. We propose two composable distribution-guided
+primitives — Dual-Band Affine Folding (DBAF) for the first and
+Prompt-Conditioned Scale Anchoring (PCSA) for the second — that
+apply unmodified across LLM, SAM, and SR. On hosts with explicit
+headroom (OmniQuant, AHCPTQ, 2DQuant), our primitives add consistent
+moderate improvements. On rotation-saturated hosts (FlatQuant /
+CompSRT), gains disappear — evidence the same distributions are
+being absorbed implicitly there. A training-free variant (k-means
+anchors) extends the primitives to zero added calibration cost.
+The contribution is the unified framework, not a SOTA gap.
 ```
 
 - [ ] **Step 2: Update §1 intro to lead with the three-level claim**
@@ -1311,31 +1312,45 @@ git commit -m "rewrite(§1): distributional-pivot abstract + intro"
 
 ---
 
-### Task 20: Related work — per-distribution reorganization
+### Task 20: Related work — focused per-distribution reorganization
 
 **Files:**
 - Modify: `/home/ubuntu/paper/emnlp2026/sections/02-related.tex`
 
-- [ ] **Step 1: Reorganize §2 into per-distribution subsections**
+**Scope correction**: The paper's Table 1 (`intro.tex:74-94`) claims exactly **two** recurring distribution types, not a broad taxonomy:
+1. **Dense regions with outliers** — appears in SR CNNs, SR Transformers, LLMs, SAM (DBAF addresses)
+2. **Input-conditioned shifts** — appears in LLMs and SAM (PCSA addresses)
+
+For each, prior work has used different per-architecture techniques (dual-region quant for SR CNNs, Hadamard for SR transformers and LLMs, rotation for LLMs). The fragmentation argument is specifically that **the same distribution type recurs but per-architecture solutions don't transfer**.
+
+§2 should be organized around just these TWO distributions (not a broader 5-category taxonomy). Other distributions our cross-model analysis observes (post-ReLU asymmetric, bimodal post-softmax, heavy-tailed unimodal) are NOT claimed to be solved by our primitives; they go in Limitations as motivation for future work.
+
+- [ ] **Step 1: Reorganize §2 into two subsections matching Table 1**
 
 ```latex
-\subsection{Sparse 3-sigma outliers}
-SmoothQuant~\citep{xiao2024smoothquantaccurateefficientposttraining},
-LLM.int8()~\citep{dettmers2022llmint8}, AWQ~\citep{lin2023awq}...
+\subsection{Dense-core with sparse outliers}
+The same dense-with-outliers pattern is documented across architectures, but
+prior work proposes per-architecture solutions: dual-region quantization for
+SR CNNs~\citep{wang2025outlier}, Hadamard transforms for SR
+transformers~\citep{Zeinali2026CompSRT}, Hadamard / rotation for
+LLMs~\citep{tseng2024quip,sun2024flatquant,ashkboos2024quarotoutlierfree4bitinference,liu2025spinquantllmquantizationlearned}.
+Outlier-handling has also been studied in transformer extremes
+\citep{liang2025tweotransformersextremeoutliers}, distribution-aware bit-width
+\citep{Zhao_2021_CVPR}, and channel-wise differences \citep{Zhao2019ImprovingNN}.
+None of these techniques apply unmodified across the four model families;
+the same problem is solved separately each time.
 
-\subsection{Rotational outlier absorption}
-QuaRot~\citep{ashkboos2024quarotoutlierfree4bitinference},
-SpinQuant~\citep{liu2025spinquantllmquantizationlearned},
-FlatQuant~\citep{sun2024flatquant}...
+\subsection{Input-conditioned distribution shifts}
+LLM activations vary by input prompt~\citep{liu2024evaluatinggeneralizationabilityquantized,chang2025inputsbreaklowbitllm};
+SAM activations vary by input image. Existing work addresses this only
+within a model family. PCSA generalizes the per-prompt anchor-routing idea
+across architectures.
 
-\subsection{Post-ReLU / post-GELU asymmetric}
-...
-
-\subsection{Bimodal post-Softmax}
-...
-
-\subsection{Per-prompt distribution shift}
-...
+\subsection{Distributions outside our scope}
+Our cross-model analysis (§4.1) identifies additional recurring patterns —
+post-ReLU asymmetric, bimodal post-softmax, heavy-tailed unimodal — that
+DBAF's gate correctly self-disables on. Addressing these requires
+distribution-specific primitives we leave to future work.
 ```
 
 - [ ] **Step 2: Compile + length check**
