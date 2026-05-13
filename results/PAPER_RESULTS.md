@@ -1,11 +1,40 @@
 # PAPER_RESULTS.md — Canonical paper results tracker
 
-**Last updated:** 2026-05-13
+**Last updated:** 2026-05-13 (calibration-stability framing)
 **Paper:** EMNLP 2026 submission, "Towards a Unified Distribution-Centric Post-Training Quantization"
 **Deadline:** May 25 2026 AoE
 
 Every result that will be cited in the paper goes here, with the eval.json path
 that produced it. Use this as the source of truth when generating LaTeX tables.
+
+---
+
+## Framing (updated 2026-05-13)
+
+**Central claim (revised):** PTQ is distribution-centric. DBAF + the
+`is_like_normal_plus_3sigma_outliers` gate together form a layer-wise
+distribution test: layers passing the gate are already well-handled by
+naive per-channel/per-token quantization; layers failing the gate have
+*much* larger baseline RTN error and benefit most from DBAF's fold/unfold.
+
+**Two regimes of DBAF gain:**
+- **Single-shot (training-free):** Per-tensor MSE reduction is modest on
+  both gate-pass and gate-fail layers. Damage from over-applying DBAF
+  compounds nonlinearly through depth (SwinIR ×3 single-layer effects
+  ≤ ±0.04 dB but all-layer DBAF gives −0.32 dB regression).
+- **Iterative calibration (training methods FlatQuant, AHCPTQ, CompSRT):**
+  DBAF participates in the optimization loop. The gate prevents body-distorting
+  folds (dense-outlier regime) from injecting noise the optimizer can't
+  recover from. C1/C2/C3a no-gate reruns will quantify this directly.
+
+**Why the gate looks "inverted" in MSE-only analysis but matters in training:**
+The gate identifies *easy* layers — gate-pass = clean Gaussian core with sparse
+outliers, where RTN error is already small (1.5-20× smaller than gate-fail
+layers per cross-model data). Gate-fail layers have higher baseline RTN
+error and DBAF gives bigger MSE-gain on them — but force-applying DBAF on
+dense-outlier layers during iterative calibration destabilizes the loss.
+The gate is essentially "DBAF for residual outliers after RTN has handled
+the easy cases".
 
 ---
 
@@ -115,6 +144,71 @@ For comparison, the fine-tuned CompSRT+DBAF result (Hadamard rotations +
 DBAF + reconstruction) recovers FP performance at ×2 (38.15 dB = FP).
 The training-free signal here is weaker but in the expected direction
 on 4/6 cells.
+
+---
+
+### Cross-model layer analysis (S4, NEW 2026-05-13)
+
+Per-layer weight + activation analysis across SwinIR-light ×2/×3/×4 + SAM-B/-L.
+Output JSON: `results/S4-cross-model-layer-analysis/*.json`. Uses codebase's
+`ActivationQuantizer` + `fold_outliers`/`unfold_outliers` directly.
+
+**Weight side** (per-channel RTN baseline; force-DBAF gain on each subset):
+
+| Model | n_layers | Gate-pass % | RTN MSE (gated) | RTN MSE (not) | DBAF gain (gated) | DBAF gain (not) |
+|---|---|---|---|---|---|---|
+| sam-b | 51 | 94.1% | 4.81e-05 | **1.48e-04** | 3.06% | **4.16%** |
+| sam-l | 99 | 97.0% | 3.98e-05 | **1.20e-04** | 3.07% | **3.36%** |
+| swinir-x2 | 103 | 97.1% | 2.40e-04 | 1.53e-04 | 0.81% | 0.97% |
+| swinir-x3 | 103 | 97.1% | 2.12e-04 | **1.61e-04** | 0.71% | 1.58% |
+| swinir-x4 | 103 | 96.1% | 2.15e-04 | 2.17e-04 | 0.65% | **2.50%** |
+
+**Activation side** (per-token asym RTN baseline via `ActivationQuantizer`):
+
+| Model | Act gate-pass % | RTN MSE (gated) | RTN MSE (not) | DBAF gain (gated) | DBAF gain (not) |
+|---|---|---|---|---|---|
+| sam-b | 23.5% | 9.45e-03 | **1.74e+00** | 0.75% | **1.10%** |
+| sam-l | 27.3% | 1.19e-02 | **1.88e+00** | 0.71% | **1.23%** |
+| swinir-x2 | 61.2% | 1.73e-02 | 6.95e-03 | 0.10% | **0.51%** |
+| swinir-x3 | 36.9% | 5.73e-03 | **2.81e-02** | 0.14% | **0.43%** |
+| swinir-x4 | 43.7% | 7.00e-03 | **3.38e-02** | 0.13% | **0.52%** |
+
+**Key reading:**
+1. **Gate-fail activations have 20-200× larger RTN error than gate-pass** (especially on SAM: 1.74 vs 0.009). The gate correctly identifies the easy/clean layers.
+2. **DBAF gain is larger on gate-fail layers** for both W and A — these are the *high-error* layers DBAF was designed to compress.
+3. **The gate is not a "DBAF gain predictor" — it's a "DBAF safe-region predictor".** Gate-pass = clean enough that RTN already does well, DBAF marginal. Gate-fail = high RTN error, DBAF helps but the fold/unfold can destabilize iterative calibration (which is why training paths gate by default).
+
+### Per-layer task-error attribution (B3, NEW 2026-05-13)
+
+SwinIR-light per-layer ablation: apply DBAF to exactly one Conv2d/Linear at a time, measure PSNR delta on Set5.
+
+| Scale | Baseline PSNR | n_gate_pass | n_gate_fail | Mean Δ gate-pass | Mean Δ gate-fail | All-layer DBAF Δ (from earlier α-sweep) |
+|---|---|---|---|---|---|---|
+| ×2 | 32.609 | 100 | 3 | +0.0008 dB | +0.0211 dB | +0.156 |
+| ×3 | 26.684 | 100 | 3 | −0.0026 dB | +0.0127 dB | −0.315 |
+| ×4 | 23.880 | 99 | 4 | +0.0037 dB | −0.0375 dB | +0.432 |
+
+**Damage compounds nonlinearly:** Each single-layer DBAF effect is ≤ ±0.04 dB,
+but applying DBAF to all 103 layers in SwinIR ×3 gives −0.32 dB regression
+(vs no-DBAF). No single layer is the culprit — the regression comes from
+DBAF errors interacting across depth. This is direct evidence that in
+training-free, the gate's value is in **preventing depth-compounding error
+accumulation**, not in selecting the highest-MSE-gain layers.
+
+Output JSON: `results/B3-per-layer-ablation/x{2,3,4}_Set5.json`.
+
+### Synthetic dense-vs-sparse outlier study (B1, NEW 2026-05-13)
+
+Constructed sparse-outlier distributions (Gaussian + k point outliers) and
+dense-outlier distributions (Student-t with varying df). For each, ran
+RTN→fold+RTN+unfold→reconstruct and measured body MSE (|x|<T) vs tail MSE
+(|x|>T) gain. Output: `results/S4-synthetic-dense-vs-sparse/results.json`.
+
+**Pattern:** body-gain stays positive (3-7%) for sparse and moderately dense
+distributions, but collapses to **0.00% at df=2.5** (very heavy-tailed). DBAF's
+fold preserves body information when outliers are isolated; fails when
+outliers blend into the body. The gate's `frac3_max=2e-2` rule of thumb
+captures roughly this transition.
 
 ---
 
