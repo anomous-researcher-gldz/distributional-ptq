@@ -260,10 +260,11 @@ recover some of that loss.
 | SpinQuant | FP16 | 7.96 | 13.45 | ICML Table 5 |
 | FlatQuant | FP16 | 6.98 | 11.13 | FlatQuant README Table 1 |
 | FlatQuant + DBAF + PCSA | FP16 | 6.96 | — | our ICML Table 5 |
-| Pure FlatQuant (no DBAF, no PCSA) | **INT4 asym** | (queued, ~2h) | (queued) | S5 ablation 2026-05-13 |
-| **FlatQuant + DBAF + PCSA** | **INT4 asym** | **6.966** | **11.143** | **S5 baseline 2026-05-13** |
+| **Pure FlatQuant** (no DBAF, no PCSA) | **INT4 asym** | **6.964** | **11.158** | S5 ablation 2026-05-13 (NEW) |
+| **FlatQuant + DBAF + PCSA** | **INT4 asym** | **6.966** | **11.143** | S5 baseline 2026-05-13 |
 | FlatQuant + DBAF + PCSA + KV-PCSA v1 (per-anchor scalar) | INT4 asym | 8.32 | (crashed) | S5 v1 calib 2026-05-13 |
-| FlatQuant + DBAF + PCSA + **KV-PCSA v2** (per-token × anchor mult) | INT4 asym | (running, ~2h) | (running) | S5 v2 calib 2026-05-13 |
+| FlatQuant + DBAF + PCSA + **KV-PCSA v2** (per-token × anchor mult) | INT4 asym | **6.977** | **11.154** | S5 v2 calib 2026-05-13 |
+| FlatQuant + DBAF (**no-gate**) + PCSA | INT4 asym | (C1 running) | (C1 running) | calibrating now |
 
 **Key finding (so far):** Going from KV16 (6.96) to INT4-asym KV (6.966) is **essentially free**
 when DBAF+PCSA are on top of FlatQuant. The pure-FlatQuant-without-DBAF-without-PCSA KV4
