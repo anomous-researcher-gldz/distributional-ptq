@@ -11,11 +11,17 @@ that produced it. Use this as the source of truth when generating LaTeX tables.
 
 ## Framing (updated 2026-05-13)
 
-**Central claim (revised):** PTQ is distribution-centric. DBAF + the
-`is_like_normal_plus_3sigma_outliers` gate together form a layer-wise
-distribution test: layers passing the gate are already well-handled by
-naive per-channel/per-token quantization; layers failing the gate have
-*much* larger baseline RTN error and benefit most from DBAF's fold/unfold.
+**Central claim (revised 2026-05-13):** PTQ is distribution-centric. DBAF +
+the `is_like_normal_plus_3sigma_outliers` gate together form a layer-wise
+distribution test. The gate identifies layers whose distribution matches the
+**sparse 3σ-outlier + Gaussian core** pattern; only on those does DBAF fire
+(per `flat_linear.py:61` and `ahcptq/quantization/fake_quant.py`). On those
+layers, DBAF gives a small but consistent quantization-error reduction
+(0.7–3%) that compounds across depth into measurable end-to-end task gains
+(FlatQuant +DBAF +PCSA on LLaMA-3-8B: 6.96 PPL; AHCPTQ +DBAF on SAM-B:
++5 mAP). Gate-fail layers — heavy-tailed, dense-outlier, post-ReLU asymmetric —
+are left as RTN; DBAF's fold would distort their body information in
+exchange for marginal MSE gain.
 
 **Two regimes of DBAF gain:**
 - **Single-shot (training-free):** Per-tensor MSE reduction is modest on
@@ -173,10 +179,29 @@ Output JSON: `results/S4-cross-model-layer-analysis/*.json`. Uses codebase's
 | swinir-x3 | 36.9% | 5.73e-03 | **2.81e-02** | 0.14% | **0.43%** |
 | swinir-x4 | 43.7% | 7.00e-03 | **3.38e-02** | 0.13% | **0.52%** |
 
-**Key reading:**
-1. **Gate-fail activations have 20-200× larger RTN error than gate-pass** (especially on SAM: 1.74 vs 0.009). The gate correctly identifies the easy/clean layers.
-2. **DBAF gain is larger on gate-fail layers** for both W and A — these are the *high-error* layers DBAF was designed to compress.
-3. **The gate is not a "DBAF gain predictor" — it's a "DBAF safe-region predictor".** Gate-pass = clean enough that RTN already does well, DBAF marginal. Gate-fail = high RTN error, DBAF helps but the fold/unfold can destabilize iterative calibration (which is why training paths gate by default).
+**Key reading (corrected 2026-05-13):**
+
+**Important:** In training paths (`flat_linear.py:61-74`, `ahcptq/quantization/fake_quant.py`),
+DBAF only fires `if gate_passes`. The "DBAF gain (not)" column above measures a
+**no-gate counterfactual** (force-apply DBAF on gate-fail layers); in actual
+trained models, those layers get plain RTN.
+
+1. **Gate-fail layers have 20-200× larger baseline RTN error than gate-pass**
+   (especially activations: SAM-B 1.74 vs 0.009). They are the hard cases.
+2. **The training paths leave them as RTN** — DBAF doesn't fire there because
+   the dense-outlier pattern violates DBAF's information-preserving assumption.
+3. **DBAF improves the easy (gate-pass) layers, by a small fraction (0.7–3%)** —
+   not the hard ones. Across 50–100 gate-pass layers, those small per-layer
+   gains compound into the end-to-end task wins observed in the published
+   FlatQuant / AHCPTQ / CompSRT results.
+4. **The hard layers are bottlenecks regardless of DBAF.** RTN's per-channel
+   scaling caps their accuracy; DBAF's fold would distort their body
+   information in exchange for a small MSE reduction (synthetic study:
+   body-gain collapses to 0% at df=2.5 dense-outlier distributions).
+
+**Gate role (corrected):** "DBAF where it's safe to fire" — preserves
+information on layers whose distribution matches the sparse-outlier pattern.
+Not "DBAF fixes the worst layers". Not "gate predicts max MSE gain".
 
 ### Per-layer task-error attribution (B3, NEW 2026-05-13)
 
