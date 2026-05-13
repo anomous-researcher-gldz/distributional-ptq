@@ -35,9 +35,15 @@ FP16 baseline (LLaMA-3-8B WikiText-2): ~6.14 PPL.
 
 | Method | Baseline PPL | +DBAF PPL | DBAF Δ | Eval path |
 |---|---|---|---|---|
-| RTN | 11.623 | **8.860** | **−2.76** | `results/S4-dbaf-weak/qwen25-7b/rtn/{baseline,with-dbaf}/eval.json` |
-| AWQ-style | 53.92 | 33.73 | **−20.2** (AWQ-style is unusually bad on Qwen — investigate) | `results/S4-dbaf-weak/qwen25-7b/awq/{baseline,with-dbaf}/eval.json` |
-| GPTQ-style | (pending) | (pending) | — | — |
+| RTN (per-channel) | 11.623 | **8.860** | **−2.76** | `results/S4-dbaf-weak/qwen25-7b/rtn/{baseline,with-dbaf}/eval.json` |
+| AWQ-style | 53.92 | 33.73 | — | (simplified AWQ unstable on Qwen — paper notes this as limitation) |
+| GPTQ-style | NaN | (pending) | — | (simplified GPTQ numerically broken on Qwen — paper notes this) |
+
+**Paper framing for Qwen:** Use only the RTN+DBAF cell. The simplified
+GPTQ-style and AWQ-style implementations are unstable on Qwen (likely due
+to Qwen's RMSNorm + GQA differences vs LLaMA). Honest treatment: report
+RTN+DBAF as the cross-model evidence; flag Qwen GPTQ/AWQ-style as
+out-of-scope in Limitations.
 
 ### SAM-B + YOLOX W4A4 (training-free)
 
