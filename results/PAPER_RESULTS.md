@@ -103,23 +103,36 @@ quantization (`--k_bits 4 --v_bits 4 --k_asym --v_asym --k_groupsize 128 --v_gro
 which raises PPL from the 6.x baseline; KV-PCSA is the proposed technique to
 recover some of that loss.
 
-| Method | KV-cache | PPL | Source |
-|---|---|---|---|
-| FP16 | FP16 | 6.14 | ICML Table 5 |
-| SmoothQuant | FP16 | 210.19 | ICML Table 5 |
-| QuaRot | FP16 | 10.60 | ICML Table 5 |
-| SpinQuant | FP16 | 7.96 | ICML Table 5 |
-| FlatQuant | FP16 | 6.98 | FlatQuant README Table 1 |
-| **FlatQuant + DBAF + PCSA** | **FP16** | **6.96** | our ICML Table 5 |
-| FlatQuant + DBAF + PCSA + **KV-PCSA** | **INT4 asym g128** | **8.32** | S5 calibration 2026-05-13 (NEW) |
-| FlatQuant + DBAF + PCSA, no KV-PCSA | **INT4 asym g128** | (running, ~2h) | S5 baseline calibration (control) |
+| Method | KV-cache | WikiText-2 | C4 | Source |
+|---|---|---|---|---|
+| FP16 | FP16 | 6.14 | 9.45 | ICML Table 5 |
+| SmoothQuant | FP16 | 210.19 | 187.93 | ICML Table 5 |
+| QuaRot | FP16 | 10.60 | 17.19 | ICML Table 5 |
+| SpinQuant | FP16 | 7.96 | 13.45 | ICML Table 5 |
+| FlatQuant | FP16 | 6.98 | 11.13 | FlatQuant README Table 1 |
+| FlatQuant + DBAF + PCSA | FP16 | 6.96 | — | our ICML Table 5 |
+| Pure FlatQuant (no DBAF, no PCSA) | **INT4 asym** | (queued, ~2h) | (queued) | S5 ablation 2026-05-13 |
+| **FlatQuant + DBAF + PCSA** | **INT4 asym** | **6.966** | **11.143** | **S5 baseline 2026-05-13** |
+| FlatQuant + DBAF + PCSA + KV-PCSA v1 (per-anchor scalar) | INT4 asym | 8.32 | (crashed) | S5 v1 calib 2026-05-13 |
+| FlatQuant + DBAF + PCSA + **KV-PCSA v2** (per-token × anchor mult) | INT4 asym | (running, ~2h) | (running) | S5 v2 calib 2026-05-13 |
 
-**Reading the comparison:** The 6.96 → 8.32 jump is *from quantizing the KV-cache to
-INT4*, not a regression in our method. KV-cache quantization is a separate axis from
-the W4A4 setting in FlatQuant's defaults. The fair KV-PCSA evaluation is the bottom
-two rows: same W4A4 + INT4 KV recipe, with and without `--kv-pcsa`. Calibrated
-checkpoints saved at `/data/outputs/S5-kv-pcsa-calib/` (+kv-pcsa) and
-`/data/outputs/S5-baseline-calib/` (control).
+**Key finding (so far):** Going from KV16 (6.96) to INT4-asym KV (6.966) is **essentially free**
+when DBAF+PCSA are on top of FlatQuant. The pure-FlatQuant-without-DBAF-without-PCSA KV4
+ablation is queued to test whether DBAF/PCSA is what makes KV4 free, or whether FlatQuant's
+rotation alone already handles it.
+
+**KV-PCSA v1 was architecturally wrong:** `AnchorAwareActivationQuantizer.fake_quant` used
+*one scalar per anchor* broadcast over [B, T, D], replacing FlatQuant's per-token scales.
+That's a strict resolution regression — explains the 8.32 PPL. **v2** keeps per-token base
+scales and adds a learnable per-anchor multiplicative correction (`exp(anchor_logmult)`,
+init zero so exp=1 → baseline behavior at start). New class `KVPerTokenAnchorQuantizer` in
+`flatquant/quant_utils.py`; v1 class kept for the q_proj activation PCSA path (unchanged).
+
+Calibrated checkpoints:
+- Baseline (no KV-PCSA): `/data/outputs/S5-baseline-calib/...` ✓
+- KV-PCSA v1: `/data/outputs/S5-kv-pcsa-calib/...` ✓ (kept for ablation)
+- KV-PCSA v2: `/data/outputs/S5-kv-pcsa-v2-calib/...` (running)
+- Pure FlatQuant (no DBAF, no PCSA): `/data/outputs/S5-pure-flatquant-kv4/...` (queued)
 
 ### SAM-B + YOLOX W4A4 (AHCPTQ)
 
