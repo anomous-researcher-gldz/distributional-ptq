@@ -30,7 +30,12 @@ def parser_gen():
 
     # General Arguments
     parser.add_argument('--model', type=str, default='meta-llama/Llama-2-7b-hf',
-                        help='Model to load.', choices=supported_models)
+                        help='Model to load.')
+    # KV-cache PCSA
+    parser.add_argument('--kv-pcsa', action='store_true',
+                        help='Enable per-prompt anchor routing on K/V cache quantization scales')
+    parser.add_argument('--kv-pcsa-anchors', type=int, default=4,
+                        help='Number of K/V anchors for kv-pcsa (default 4)')
     parser.add_argument('--seed', type=int, default=0, help='Random seed for HuggingFace and PyTorch.')
     parser.add_argument('--hf_token', type=str, default=None, help='HuggingFace token for model access.')
 

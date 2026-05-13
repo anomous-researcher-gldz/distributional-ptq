@@ -121,20 +121,38 @@ class FlatQuantLlamaAttention(LlamaAttention):
         self.o_proj = FlatQuantizedLinear(args, module.o_proj)
         self.add_fq_trans()
 
+        self._kv_pcsa = getattr(args, 'kv_pcsa', False)
+        _kv_anchors = getattr(args, 'kv_pcsa_anchors', 4) if self._kv_pcsa else None
+
         if args.q_bits < 16:
             self.q_cache_quantizer = ActivationQuantizer(bits=args.q_bits, \
                                         sym=not(args.q_asym), lac=args.lac, groupsize=-1, )
         if args.k_bits < 16:
-            self.k_cache_quantizer = ActivationQuantizer(bits=args.k_bits, \
-                                        sym=not(args.k_asym), lac=args.lac, groupsize=-1, )
+            if self._kv_pcsa:
+                self.k_cache_quantizer = AnchorAwareActivationQuantizer(
+                    bits=args.k_bits, sym=not(args.k_asym), lac=args.lac,
+                    groupsize=-1, num_anchors=_kv_anchors,
+                )
+            else:
+                self.k_cache_quantizer = ActivationQuantizer(bits=args.k_bits, \
+                                            sym=not(args.k_asym), lac=args.lac, groupsize=-1, )
         if args.v_bits < 16:
-            self.v_cache_quantizer = ActivationQuantizer(bits=args.v_bits, \
-                                        sym=not(args.v_asym), lac=args.lac, groupsize=-1, )
+            if self._kv_pcsa:
+                self.v_cache_quantizer = AnchorAwareActivationQuantizer(
+                    bits=args.v_bits, sym=not(args.v_asym), lac=args.lac,
+                    groupsize=-1, num_anchors=_kv_anchors,
+                )
+            else:
+                self.v_cache_quantizer = ActivationQuantizer(bits=args.v_bits, \
+                                            sym=not(args.v_asym), lac=args.lac, groupsize=-1, )
 
         # PCSA: anchor-aware quantizer for q_proj
         self._disable_pcsa = getattr(args, 'disable_pcsa', False)
+        # Build prompt_bank if either q_proj PCSA OR KV-PCSA is enabled
+        if (not self._disable_pcsa) or self._kv_pcsa:
+            n_anchors = max(_kv_anchors or 0, 8 if not self._disable_pcsa else 0)
+            self.prompt_bank = PromptBank(num_anchors=n_anchors, descriptor_dim=self.config.hidden_size)
         if not self._disable_pcsa:
-            self.prompt_bank = PromptBank(num_anchors=8, descriptor_dim=self.config.hidden_size)
             self.q_proj.act_quantizer = AnchorAwareActivationQuantizer(
                 bits=args.a_bits, sym=not(args.a_asym), lac=args.lac,
                 groupsize=args.a_groupsize, num_anchors=8,
@@ -176,11 +194,13 @@ class FlatQuantLlamaAttention(LlamaAttention):
 
     def _trans_forward_after_ln(self, hidden_states):
         anchor_ids = None
-        if not self._disable_pcsa:
-            # PCSA: compute descriptor and assign anchor
+        # Compute anchor_ids if either q_proj PCSA or KV-PCSA needs them
+        if (not self._disable_pcsa) or self._kv_pcsa:
             desc = hidden_states.mean(dim=1)  # [B, D]
             desc = desc / (desc.norm(dim=-1, keepdim=True) + 1e-6)
             anchor_ids = self.prompt_bank.assign(desc, update=not self._eval_mode)
+        # KV-PCSA: cache the anchor ids so quant_kcache / quant_vcache can use them
+        self._current_kv_anchor_ids = anchor_ids if self._kv_pcsa else None
 
         if self.ln_trans is not None:
             hidden_states = self.ln_trans(hidden_states)
@@ -206,7 +226,8 @@ class FlatQuantLlamaAttention(LlamaAttention):
         if self.args.separate_vtrans:
             value_states = self.vcache_trans(value_states)
         if self.args.v_bits < 16:
-            value_states = self.v_cache_quantizer(value_states)
+            kv_anchor = getattr(self, "_current_kv_anchor_ids", None)
+            value_states = self.v_cache_quantizer(value_states, anchor_id=kv_anchor)
         return value_states
 
     def quant_kcache(self, q, k):
@@ -218,9 +239,9 @@ class FlatQuantLlamaAttention(LlamaAttention):
             k = self.kcache_trans(k)
         if self.args.q_bits < 16:
             q = self.q_cache_quantizer(q).to(q)
-        # TODO: by default do the per-head quantizaion for k-v-cache
         if self.args.k_bits < 16:
-            k = self.k_cache_quantizer(k).to(q)
+            kv_anchor = getattr(self, "_current_kv_anchor_ids", None)
+            k = self.k_cache_quantizer(k, anchor_id=kv_anchor).to(q)
         return q, k
 
     def forward(self, hidden_states, attention_mask, position_ids,
