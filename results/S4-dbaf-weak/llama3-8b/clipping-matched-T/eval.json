@@ -1,0 +1,7 @@
+{
+  "model": "llama3-8b",
+  "method": "RTN+matched-T-clipping(3.0sigma)",
+  "bits": 4,
+  "wikitext2_ppl": 79256.2265625,
+  "quant_seconds": 0.14888834953308105
+}

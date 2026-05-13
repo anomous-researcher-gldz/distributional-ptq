@@ -21,7 +21,13 @@ W4, per-channel weight scaling, WikiText-2 perplexity (lower is better).
 | RTN | 10.279 | 8.870 | **−1.41** | `results/S4-dbaf-weak/llama3-8b/rtn/{baseline,with-dbaf}/eval.json` |
 | GPTQ-style | 11.604 | 9.794 | **−1.81** | `results/S4-dbaf-weak/llama3-8b/gptq/{baseline,with-dbaf}/eval.json` |
 | AWQ-style | 13.491 | 9.417 | **−4.07** | `results/S4-dbaf-weak/llama3-8b/awq/{baseline,with-dbaf}/eval.json` |
-| Matched-T clipping (α=0) | — | (pending) | — | — |
+| **Matched-T clipping (α=0)** | **79,256** | — | **+79,246 vs RTN** | `results/S4-dbaf-weak/llama3-8b/clipping-matched-T/eval.json` |
+
+**Matched-T clipping ablation (CRITICAL FINDING):** At the same threshold T=3σ, hard
+clipping (α=0) destroys the model (PPL=79k), while DBAF (α=0.75) gives PPL=8.87.
+This isolates DBAF's mechanism: the value is *not* dynamic-range reduction
+(clipping also does that), but *outlier-ordering preservation* via affine folding.
+Direct answer to reviewer aCWD's "what if α=1.0 / clipping" line of questioning.
 
 FP16 baseline (LLaMA-3-8B WikiText-2): ~6.14 PPL.
 
