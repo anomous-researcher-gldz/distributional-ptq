@@ -1,0 +1,14 @@
+{
+  "model": "sam-l",
+  "weight_kinds": {
+    "gaussian_with_sparse_outliers": 96,
+    "heavy_tailed_unimodal": 2,
+    "dense_outlier": 1
+  },
+  "activation_kinds": {
+    "near_gaussian_no_outliers": 1,
+    "skewed_post_relu_like": 70,
+    "gaussian_with_sparse_outliers": 27,
+    "dense_outlier": 1
+  }
+}

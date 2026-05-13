@@ -1,0 +1,15 @@
+{
+  "model": "swinir-x4",
+  "weight_kinds": {
+    "gaussian_with_sparse_outliers": 99,
+    "other": 2,
+    "skewed_post_relu_like": 1,
+    "dense_outlier": 1
+  },
+  "activation_kinds": {
+    "near_gaussian_no_outliers": 1,
+    "gaussian_with_sparse_outliers": 45,
+    "skewed_post_relu_like": 49,
+    "dense_outlier": 8
+  }
+}
