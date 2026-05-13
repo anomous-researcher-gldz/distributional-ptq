@@ -3,7 +3,7 @@ import math
 import torch
 import torch.nn as nn
 
-from flatquant.quant_utils import ActivationQuantizer, AnchorAwareActivationQuantizer
+from flatquant.quant_utils import ActivationQuantizer, AnchorAwareActivationQuantizer, KVPerTokenAnchorQuantizer
 from flatquant.prompt_anchor import PromptBank
 from flatquant.utils import skip_initialization
 from flatquant.function_utils import get_init_scale, get_decompose_dim
@@ -133,7 +133,7 @@ class FlatQuantLlamaAttention(LlamaAttention):
                                         sym=not(args.q_asym), lac=args.lac, groupsize=-1, )
         if args.k_bits < 16:
             if self._kv_pcsa:
-                self.k_cache_quantizer = AnchorAwareActivationQuantizer(
+                self.k_cache_quantizer = KVPerTokenAnchorQuantizer(
                     bits=args.k_bits, sym=not(args.k_asym), lac=args.lac,
                     groupsize=-1, num_anchors=_kv_anchors,
                 )
@@ -142,7 +142,7 @@ class FlatQuantLlamaAttention(LlamaAttention):
                                             sym=not(args.k_asym), lac=args.lac, groupsize=-1, )
         if args.v_bits < 16:
             if self._kv_pcsa:
-                self.v_cache_quantizer = AnchorAwareActivationQuantizer(
+                self.v_cache_quantizer = KVPerTokenAnchorQuantizer(
                     bits=args.v_bits, sym=not(args.v_asym), lac=args.lac,
                     groupsize=-1, num_anchors=_kv_anchors,
                 )

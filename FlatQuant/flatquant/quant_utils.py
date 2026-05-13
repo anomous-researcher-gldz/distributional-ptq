@@ -206,6 +206,45 @@ class AnchorAwareActivationQuantizer(ActivationQuantizer):
             return asym_quant_dequant(x, scale, zero, q_max).to(x_dtype)
 
 
+class KVPerTokenAnchorQuantizer(ActivationQuantizer):
+    """Per-token base scale + per-anchor multiplicative correction for K/V cache.
+
+    Why: AnchorAwareActivationQuantizer collapses to a single scalar scale per
+    anchor, broadcast over [B,T,D] — coarser than FlatQuant's default per-token
+    scaling and a strict regression for the KV-cache path. This class keeps the
+    per-token scale and adds a learnable per-anchor log-multiplier
+    (exp-parameterized, init zero so exp=1 reproduces baseline behavior at the
+    start of calibration). KV-PCSA's job is to *refine* per-token scales by
+    prompt cluster, not replace them.
+    """
+
+    def __init__(self, bits, sym=False, lac=False, groupsize=-1, clip_ratio=None,
+                 dbaf_alpha=0.99, num_anchors=8):
+        super().__init__(bits, sym=sym, lac=lac, groupsize=groupsize,
+                         clip_ratio=clip_ratio, dbaf_alpha=dbaf_alpha)
+        self.num_anchors = num_anchors
+        self.anchor_logmult = torch.nn.Parameter(
+            torch.zeros(num_anchors), requires_grad=True
+        )
+
+    def fake_quant(self, x: torch.Tensor, anchor_id=None) -> torch.Tensor:  # no DBAF
+        x_dtype = x.dtype
+        B = x.shape[0]
+        if anchor_id is None:
+            anchor_id = torch.zeros(B, dtype=torch.long, device=x.device)
+        # Per-token (per-row) scale via base get_scale_zero — same shape as x.
+        scale, zero = self.get_scale_zero(x)
+        # Per-anchor multiplicative correction; exp(0)=1 at init.
+        c = torch.exp(self.anchor_logmult[anchor_id])  # [B]
+        extra_dims = x.dim() - 1
+        c = c.view(B, *([1] * extra_dims))
+        scale = scale * c
+        q_max = self.q_max.to(x)
+        if self.sym:
+            return sym_quant_dequant(x, scale, q_max).to(x_dtype)
+        return asym_quant_dequant(x, scale, zero, q_max).to(x_dtype)
+
+
 class WeightQuantizer(torch.nn.Module):
     '''From GPTQ Repo'''
 
