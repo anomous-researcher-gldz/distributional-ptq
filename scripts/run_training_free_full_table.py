@@ -39,7 +39,7 @@ for _p in [str(_REPO), str(_FLATQUANT), str(_COMPSRT), str(_PROJECTS)]:
 # ---------------------------------------------------------------------------
 ALL_TARGETS  = ["llama3-8b", "qwen25-7b", "sam-b", "sam-l", "sam-h",
                 "swinir-x2", "swinir-x3", "swinir-x4"]
-ALL_METHODS  = ["rtn", "gptq", "awq"]
+ALL_METHODS  = ["rtn", "gptq", "awq", "smoothquant"]
 ALL_AUGMENTS = ["alone", "dbaf", "pcsa_tf", "dbaf+pcsa_tf"]
 
 LLM_TARGETS  = {"llama3-8b", "qwen25-7b"}
@@ -263,7 +263,7 @@ def run_llm(target: str, method: str, augments: str, out_path: pathlib.Path):
 
     # --- Weight quantization ---
     calib = None
-    if method in ("gptq", "awq"):
+    if method in ("gptq", "awq", "smoothquant"):
         calib = _calib_batch_llm(tok)
 
     if method == "rtn":
@@ -275,6 +275,10 @@ def run_llm(target: str, method: str, augments: str, out_path: pathlib.Path):
     elif method == "awq":
         from flatquant.baselines.awq import quantize_model
         model = quantize_model(model, bits=4, calibration_data=calib, use_dbaf=use_dbaf)
+    elif method == "smoothquant":
+        from flatquant.baselines.smoothquant import quantize_model
+        model = quantize_model(model, bits=4, calibration_data=calib,
+                               alpha=0.5, use_dbaf=use_dbaf, act_bits=4)
     else:
         raise ValueError(f"Unknown method: {method}")
 
