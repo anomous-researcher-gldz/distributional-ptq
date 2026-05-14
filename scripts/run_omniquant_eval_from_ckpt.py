@@ -49,6 +49,30 @@ from datautils import get_loaders
 
 
 # ---------------------------------------------------------------------------
+# Compatibility patch: newer transformers passes cache_position (and other
+# kwargs) to each decoder layer; QuantLlamaDecoderLayer.forward() doesn't
+# accept them.  Wrap it once at import time to absorb unknown kwargs.
+# ---------------------------------------------------------------------------
+_orig_qdl_forward = QuantLlamaDecoderLayer.forward
+
+
+def _qdl_forward_compat(self, hidden_states, attention_mask=None,
+                        position_ids=None, past_key_value=None,
+                        output_attentions=False, use_cache=False, **_kwargs):
+    return _orig_qdl_forward(
+        self, hidden_states,
+        attention_mask=attention_mask,
+        position_ids=position_ids,
+        past_key_value=past_key_value,
+        output_attentions=output_attentions,
+        use_cache=use_cache,
+    )
+
+
+QuantLlamaDecoderLayer.forward = _qdl_forward_compat
+
+
+# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
@@ -176,6 +200,11 @@ def apply_omniquant_with_params(lm, args, omni_parameters, logger):
 
         qlayer.let = args.let
 
+        # Cast to half before inplace weight quantization (mirrors omniquant.py
+        # which calls qlayer.half() after the training loop and before
+        # smooth_and_quant_inplace to ensure consistent fp16 dtypes).
+        qlayer.half()
+
         # Fuse smooth transforms + quantize weights in-place
         set_quant_state(qlayer, weight_quant=False, act_quant=True)
         smooth_and_quant_inplace(qlayer, args, is_llama)
@@ -201,7 +230,7 @@ def eval_ppl(lm, dataset_name, cache_dir, logger):
 
     cache_testloader = os.path.join(cache_dir, f"testloader_{model_family}_{dataset_name}_all.cache")
     if os.path.exists(cache_testloader):
-        testloader = torch.load(cache_testloader)
+        testloader = torch.load(cache_testloader, weights_only=False)
         logger.info(f"Loaded cached testloader from {cache_testloader}")
     else:
         _, testloader = get_loaders(
@@ -294,7 +323,7 @@ def main():
 
     # 2. Load omni_parameters.pth
     logger.info(f"Loading checkpoint from {cli.params_path}")
-    omni_parameters = torch.load(cli.params_path, map_location="cpu")
+    omni_parameters = torch.load(cli.params_path, map_location="cpu", weights_only=False)
     logger.info(f"Checkpoint contains params for {len(omni_parameters)} layers")
 
     # 3. Re-apply quantization
