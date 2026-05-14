@@ -41,7 +41,8 @@ COMMON_ARGS="--model $MODEL \
   --nsamples 128 --epochs 20 \
   --lwc \
   --alpha 0.75 \
-  --lwc_lr 1e-2"
+  --lwc_lr 1e-2 \
+  --eval_ppl"
 
 ARM=${1:-all}
 
