@@ -1,0 +1,642 @@
+[
+  {
+    "host": "SwinIR-light",
+    "modality": "SR",
+    "d": 60,
+    "primitive_key": "R_learned",
+    "primitive": "Learned rotation $R$ (FlatQuant/SpinQuant)",
+    "per_token_flops": 3600,
+    "per_prompt_flops": 0,
+    "notes": "static, per-layer; $d^2$ params"
+  },
+  {
+    "host": "SwinIR-light",
+    "modality": "SR",
+    "d": 60,
+    "primitive_key": "R_hadamard",
+    "primitive": "Fast Hadamard $H$ (QuaRot/QuIP\\#)",
+    "per_token_flops": 354.41343573651113,
+    "per_prompt_flops": 0,
+    "notes": "static, structured; near-zero params"
+  },
+  {
+    "host": "SwinIR-light",
+    "modality": "SR",
+    "d": 60,
+    "primitive_key": "hluq",
+    "primitive": "HLUQ log+uniform LUT (AHCPTQ)",
+    "per_token_flops": 60,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor LUT (SAM)"
+  },
+  {
+    "host": "SwinIR-light",
+    "modality": "SR",
+    "d": 60,
+    "primitive_key": "bimodal",
+    "primitive": "Bimodal integration (PTQ4SAM)",
+    "per_token_flops": 120,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor (SAM)"
+  },
+  {
+    "host": "SwinIR-light",
+    "modality": "SR",
+    "d": 60,
+    "primitive_key": "dobi_dqc",
+    "primitive": "Bound clip (2DQuant DOBI+DQC)",
+    "per_token_flops": 60,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor (SR)"
+  },
+  {
+    "host": "SwinIR-light",
+    "modality": "SR",
+    "d": 60,
+    "primitive_key": "dbaf",
+    "primitive": "\\textbf{DBAF} (ours, per-tensor outlier fold)",
+    "per_token_flops": 120,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor, gated"
+  },
+  {
+    "host": "SwinIR-light",
+    "modality": "SR",
+    "d": 60,
+    "primitive_key": "pcsa_tf",
+    "primitive": "\\textbf{PCSA-tf} (ours, per-input scale routing)",
+    "per_token_flops": 60,
+    "per_prompt_flops": 240,
+    "notes": "input-conditional, per-quantizer"
+  },
+  {
+    "host": "SwinIR-light",
+    "modality": "SR",
+    "d": 60,
+    "primitive_key": "dbaf_pcsa",
+    "primitive": "\\textbf{DBAF + PCSA-tf} (ours, combined)",
+    "per_token_flops": 180,
+    "per_prompt_flops": 240,
+    "notes": "ours, both primitives"
+  },
+  {
+    "host": "SwinIR-base",
+    "modality": "SR (alt)",
+    "d": 180,
+    "primitive_key": "R_learned",
+    "primitive": "Learned rotation $R$ (FlatQuant/SpinQuant)",
+    "per_token_flops": 32400,
+    "per_prompt_flops": 0,
+    "notes": "static, per-layer; $d^2$ params"
+  },
+  {
+    "host": "SwinIR-base",
+    "modality": "SR (alt)",
+    "d": 180,
+    "primitive_key": "R_hadamard",
+    "primitive": "Fast Hadamard $H$ (QuaRot/QuIP\\#)",
+    "per_token_flops": 1348.5335573393415,
+    "per_prompt_flops": 0,
+    "notes": "static, structured; near-zero params"
+  },
+  {
+    "host": "SwinIR-base",
+    "modality": "SR (alt)",
+    "d": 180,
+    "primitive_key": "hluq",
+    "primitive": "HLUQ log+uniform LUT (AHCPTQ)",
+    "per_token_flops": 180,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor LUT (SAM)"
+  },
+  {
+    "host": "SwinIR-base",
+    "modality": "SR (alt)",
+    "d": 180,
+    "primitive_key": "bimodal",
+    "primitive": "Bimodal integration (PTQ4SAM)",
+    "per_token_flops": 360,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor (SAM)"
+  },
+  {
+    "host": "SwinIR-base",
+    "modality": "SR (alt)",
+    "d": 180,
+    "primitive_key": "dobi_dqc",
+    "primitive": "Bound clip (2DQuant DOBI+DQC)",
+    "per_token_flops": 180,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor (SR)"
+  },
+  {
+    "host": "SwinIR-base",
+    "modality": "SR (alt)",
+    "d": 180,
+    "primitive_key": "dbaf",
+    "primitive": "\\textbf{DBAF} (ours, per-tensor outlier fold)",
+    "per_token_flops": 360,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor, gated"
+  },
+  {
+    "host": "SwinIR-base",
+    "modality": "SR (alt)",
+    "d": 180,
+    "primitive_key": "pcsa_tf",
+    "primitive": "\\textbf{PCSA-tf} (ours, per-input scale routing)",
+    "per_token_flops": 180,
+    "per_prompt_flops": 240,
+    "notes": "input-conditional, per-quantizer"
+  },
+  {
+    "host": "SwinIR-base",
+    "modality": "SR (alt)",
+    "d": 180,
+    "primitive_key": "dbaf_pcsa",
+    "primitive": "\\textbf{DBAF + PCSA-tf} (ours, combined)",
+    "per_token_flops": 540,
+    "per_prompt_flops": 240,
+    "notes": "ours, both primitives"
+  },
+  {
+    "host": "SAM-B encoder",
+    "modality": "SAM",
+    "d": 768,
+    "primitive_key": "R_learned",
+    "primitive": "Learned rotation $R$ (FlatQuant/SpinQuant)",
+    "per_token_flops": 589824,
+    "per_prompt_flops": 0,
+    "notes": "static, per-layer; $d^2$ params"
+  },
+  {
+    "host": "SAM-B encoder",
+    "modality": "SAM",
+    "d": 768,
+    "primitive_key": "R_hadamard",
+    "primitive": "Fast Hadamard $H$ (QuaRot/QuIP\\#)",
+    "per_token_flops": 7361.251200553848,
+    "per_prompt_flops": 0,
+    "notes": "static, structured; near-zero params"
+  },
+  {
+    "host": "SAM-B encoder",
+    "modality": "SAM",
+    "d": 768,
+    "primitive_key": "hluq",
+    "primitive": "HLUQ log+uniform LUT (AHCPTQ)",
+    "per_token_flops": 768,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor LUT (SAM)"
+  },
+  {
+    "host": "SAM-B encoder",
+    "modality": "SAM",
+    "d": 768,
+    "primitive_key": "bimodal",
+    "primitive": "Bimodal integration (PTQ4SAM)",
+    "per_token_flops": 1536,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor (SAM)"
+  },
+  {
+    "host": "SAM-B encoder",
+    "modality": "SAM",
+    "d": 768,
+    "primitive_key": "dobi_dqc",
+    "primitive": "Bound clip (2DQuant DOBI+DQC)",
+    "per_token_flops": 768,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor (SR)"
+  },
+  {
+    "host": "SAM-B encoder",
+    "modality": "SAM",
+    "d": 768,
+    "primitive_key": "dbaf",
+    "primitive": "\\textbf{DBAF} (ours, per-tensor outlier fold)",
+    "per_token_flops": 1536,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor, gated"
+  },
+  {
+    "host": "SAM-B encoder",
+    "modality": "SAM",
+    "d": 768,
+    "primitive_key": "pcsa_tf",
+    "primitive": "\\textbf{PCSA-tf} (ours, per-input scale routing)",
+    "per_token_flops": 768,
+    "per_prompt_flops": 240,
+    "notes": "input-conditional, per-quantizer"
+  },
+  {
+    "host": "SAM-B encoder",
+    "modality": "SAM",
+    "d": 768,
+    "primitive_key": "dbaf_pcsa",
+    "primitive": "\\textbf{DBAF + PCSA-tf} (ours, combined)",
+    "per_token_flops": 2304,
+    "per_prompt_flops": 240,
+    "notes": "ours, both primitives"
+  },
+  {
+    "host": "SAM-L encoder",
+    "modality": "SAM",
+    "d": 1024,
+    "primitive_key": "R_learned",
+    "primitive": "Learned rotation $R$ (FlatQuant/SpinQuant)",
+    "per_token_flops": 1048576,
+    "per_prompt_flops": 0,
+    "notes": "static, per-layer; $d^2$ params"
+  },
+  {
+    "host": "SAM-L encoder",
+    "modality": "SAM",
+    "d": 1024,
+    "primitive_key": "R_hadamard",
+    "primitive": "Fast Hadamard $H$ (QuaRot/QuIP\\#)",
+    "per_token_flops": 10240.0,
+    "per_prompt_flops": 0,
+    "notes": "static, structured; near-zero params"
+  },
+  {
+    "host": "SAM-L encoder",
+    "modality": "SAM",
+    "d": 1024,
+    "primitive_key": "hluq",
+    "primitive": "HLUQ log+uniform LUT (AHCPTQ)",
+    "per_token_flops": 1024,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor LUT (SAM)"
+  },
+  {
+    "host": "SAM-L encoder",
+    "modality": "SAM",
+    "d": 1024,
+    "primitive_key": "bimodal",
+    "primitive": "Bimodal integration (PTQ4SAM)",
+    "per_token_flops": 2048,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor (SAM)"
+  },
+  {
+    "host": "SAM-L encoder",
+    "modality": "SAM",
+    "d": 1024,
+    "primitive_key": "dobi_dqc",
+    "primitive": "Bound clip (2DQuant DOBI+DQC)",
+    "per_token_flops": 1024,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor (SR)"
+  },
+  {
+    "host": "SAM-L encoder",
+    "modality": "SAM",
+    "d": 1024,
+    "primitive_key": "dbaf",
+    "primitive": "\\textbf{DBAF} (ours, per-tensor outlier fold)",
+    "per_token_flops": 2048,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor, gated"
+  },
+  {
+    "host": "SAM-L encoder",
+    "modality": "SAM",
+    "d": 1024,
+    "primitive_key": "pcsa_tf",
+    "primitive": "\\textbf{PCSA-tf} (ours, per-input scale routing)",
+    "per_token_flops": 1024,
+    "per_prompt_flops": 240,
+    "notes": "input-conditional, per-quantizer"
+  },
+  {
+    "host": "SAM-L encoder",
+    "modality": "SAM",
+    "d": 1024,
+    "primitive_key": "dbaf_pcsa",
+    "primitive": "\\textbf{DBAF + PCSA-tf} (ours, combined)",
+    "per_token_flops": 3072,
+    "per_prompt_flops": 240,
+    "notes": "ours, both primitives"
+  },
+  {
+    "host": "SAM-H encoder",
+    "modality": "SAM",
+    "d": 1280,
+    "primitive_key": "R_learned",
+    "primitive": "Learned rotation $R$ (FlatQuant/SpinQuant)",
+    "per_token_flops": 1638400,
+    "per_prompt_flops": 0,
+    "notes": "static, per-layer; $d^2$ params"
+  },
+  {
+    "host": "SAM-H encoder",
+    "modality": "SAM",
+    "d": 1280,
+    "primitive_key": "R_hadamard",
+    "primitive": "Fast Hadamard $H$ (QuaRot/QuIP\\#)",
+    "per_token_flops": 13212.067961455823,
+    "per_prompt_flops": 0,
+    "notes": "static, structured; near-zero params"
+  },
+  {
+    "host": "SAM-H encoder",
+    "modality": "SAM",
+    "d": 1280,
+    "primitive_key": "hluq",
+    "primitive": "HLUQ log+uniform LUT (AHCPTQ)",
+    "per_token_flops": 1280,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor LUT (SAM)"
+  },
+  {
+    "host": "SAM-H encoder",
+    "modality": "SAM",
+    "d": 1280,
+    "primitive_key": "bimodal",
+    "primitive": "Bimodal integration (PTQ4SAM)",
+    "per_token_flops": 2560,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor (SAM)"
+  },
+  {
+    "host": "SAM-H encoder",
+    "modality": "SAM",
+    "d": 1280,
+    "primitive_key": "dobi_dqc",
+    "primitive": "Bound clip (2DQuant DOBI+DQC)",
+    "per_token_flops": 1280,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor (SR)"
+  },
+  {
+    "host": "SAM-H encoder",
+    "modality": "SAM",
+    "d": 1280,
+    "primitive_key": "dbaf",
+    "primitive": "\\textbf{DBAF} (ours, per-tensor outlier fold)",
+    "per_token_flops": 2560,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor, gated"
+  },
+  {
+    "host": "SAM-H encoder",
+    "modality": "SAM",
+    "d": 1280,
+    "primitive_key": "pcsa_tf",
+    "primitive": "\\textbf{PCSA-tf} (ours, per-input scale routing)",
+    "per_token_flops": 1280,
+    "per_prompt_flops": 240,
+    "notes": "input-conditional, per-quantizer"
+  },
+  {
+    "host": "SAM-H encoder",
+    "modality": "SAM",
+    "d": 1280,
+    "primitive_key": "dbaf_pcsa",
+    "primitive": "\\textbf{DBAF + PCSA-tf} (ours, combined)",
+    "per_token_flops": 3840,
+    "per_prompt_flops": 240,
+    "notes": "ours, both primitives"
+  },
+  {
+    "host": "Llama-2-7B",
+    "modality": "LLM",
+    "d": 4096,
+    "primitive_key": "R_learned",
+    "primitive": "Learned rotation $R$ (FlatQuant/SpinQuant)",
+    "per_token_flops": 16777216,
+    "per_prompt_flops": 0,
+    "notes": "static, per-layer; $d^2$ params"
+  },
+  {
+    "host": "Llama-2-7B",
+    "modality": "LLM",
+    "d": 4096,
+    "primitive_key": "R_hadamard",
+    "primitive": "Fast Hadamard $H$ (QuaRot/QuIP\\#)",
+    "per_token_flops": 49152.0,
+    "per_prompt_flops": 0,
+    "notes": "static, structured; near-zero params"
+  },
+  {
+    "host": "Llama-2-7B",
+    "modality": "LLM",
+    "d": 4096,
+    "primitive_key": "hluq",
+    "primitive": "HLUQ log+uniform LUT (AHCPTQ)",
+    "per_token_flops": 4096,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor LUT (SAM)"
+  },
+  {
+    "host": "Llama-2-7B",
+    "modality": "LLM",
+    "d": 4096,
+    "primitive_key": "bimodal",
+    "primitive": "Bimodal integration (PTQ4SAM)",
+    "per_token_flops": 8192,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor (SAM)"
+  },
+  {
+    "host": "Llama-2-7B",
+    "modality": "LLM",
+    "d": 4096,
+    "primitive_key": "dobi_dqc",
+    "primitive": "Bound clip (2DQuant DOBI+DQC)",
+    "per_token_flops": 4096,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor (SR)"
+  },
+  {
+    "host": "Llama-2-7B",
+    "modality": "LLM",
+    "d": 4096,
+    "primitive_key": "dbaf",
+    "primitive": "\\textbf{DBAF} (ours, per-tensor outlier fold)",
+    "per_token_flops": 8192,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor, gated"
+  },
+  {
+    "host": "Llama-2-7B",
+    "modality": "LLM",
+    "d": 4096,
+    "primitive_key": "pcsa_tf",
+    "primitive": "\\textbf{PCSA-tf} (ours, per-input scale routing)",
+    "per_token_flops": 4096,
+    "per_prompt_flops": 240,
+    "notes": "input-conditional, per-quantizer"
+  },
+  {
+    "host": "Llama-2-7B",
+    "modality": "LLM",
+    "d": 4096,
+    "primitive_key": "dbaf_pcsa",
+    "primitive": "\\textbf{DBAF + PCSA-tf} (ours, combined)",
+    "per_token_flops": 12288,
+    "per_prompt_flops": 240,
+    "notes": "ours, both primitives"
+  },
+  {
+    "host": "Llama-3-8B",
+    "modality": "LLM",
+    "d": 4096,
+    "primitive_key": "R_learned",
+    "primitive": "Learned rotation $R$ (FlatQuant/SpinQuant)",
+    "per_token_flops": 16777216,
+    "per_prompt_flops": 0,
+    "notes": "static, per-layer; $d^2$ params"
+  },
+  {
+    "host": "Llama-3-8B",
+    "modality": "LLM",
+    "d": 4096,
+    "primitive_key": "R_hadamard",
+    "primitive": "Fast Hadamard $H$ (QuaRot/QuIP\\#)",
+    "per_token_flops": 49152.0,
+    "per_prompt_flops": 0,
+    "notes": "static, structured; near-zero params"
+  },
+  {
+    "host": "Llama-3-8B",
+    "modality": "LLM",
+    "d": 4096,
+    "primitive_key": "hluq",
+    "primitive": "HLUQ log+uniform LUT (AHCPTQ)",
+    "per_token_flops": 4096,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor LUT (SAM)"
+  },
+  {
+    "host": "Llama-3-8B",
+    "modality": "LLM",
+    "d": 4096,
+    "primitive_key": "bimodal",
+    "primitive": "Bimodal integration (PTQ4SAM)",
+    "per_token_flops": 8192,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor (SAM)"
+  },
+  {
+    "host": "Llama-3-8B",
+    "modality": "LLM",
+    "d": 4096,
+    "primitive_key": "dobi_dqc",
+    "primitive": "Bound clip (2DQuant DOBI+DQC)",
+    "per_token_flops": 4096,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor (SR)"
+  },
+  {
+    "host": "Llama-3-8B",
+    "modality": "LLM",
+    "d": 4096,
+    "primitive_key": "dbaf",
+    "primitive": "\\textbf{DBAF} (ours, per-tensor outlier fold)",
+    "per_token_flops": 8192,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor, gated"
+  },
+  {
+    "host": "Llama-3-8B",
+    "modality": "LLM",
+    "d": 4096,
+    "primitive_key": "pcsa_tf",
+    "primitive": "\\textbf{PCSA-tf} (ours, per-input scale routing)",
+    "per_token_flops": 4096,
+    "per_prompt_flops": 240,
+    "notes": "input-conditional, per-quantizer"
+  },
+  {
+    "host": "Llama-3-8B",
+    "modality": "LLM",
+    "d": 4096,
+    "primitive_key": "dbaf_pcsa",
+    "primitive": "\\textbf{DBAF + PCSA-tf} (ours, combined)",
+    "per_token_flops": 12288,
+    "per_prompt_flops": 240,
+    "notes": "ours, both primitives"
+  },
+  {
+    "host": "Llama-3-70B",
+    "modality": "LLM",
+    "d": 8192,
+    "primitive_key": "R_learned",
+    "primitive": "Learned rotation $R$ (FlatQuant/SpinQuant)",
+    "per_token_flops": 67108864,
+    "per_prompt_flops": 0,
+    "notes": "static, per-layer; $d^2$ params"
+  },
+  {
+    "host": "Llama-3-70B",
+    "modality": "LLM",
+    "d": 8192,
+    "primitive_key": "R_hadamard",
+    "primitive": "Fast Hadamard $H$ (QuaRot/QuIP\\#)",
+    "per_token_flops": 106496.0,
+    "per_prompt_flops": 0,
+    "notes": "static, structured; near-zero params"
+  },
+  {
+    "host": "Llama-3-70B",
+    "modality": "LLM",
+    "d": 8192,
+    "primitive_key": "hluq",
+    "primitive": "HLUQ log+uniform LUT (AHCPTQ)",
+    "per_token_flops": 8192,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor LUT (SAM)"
+  },
+  {
+    "host": "Llama-3-70B",
+    "modality": "LLM",
+    "d": 8192,
+    "primitive_key": "bimodal",
+    "primitive": "Bimodal integration (PTQ4SAM)",
+    "per_token_flops": 16384,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor (SAM)"
+  },
+  {
+    "host": "Llama-3-70B",
+    "modality": "LLM",
+    "d": 8192,
+    "primitive_key": "dobi_dqc",
+    "primitive": "Bound clip (2DQuant DOBI+DQC)",
+    "per_token_flops": 8192,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor (SR)"
+  },
+  {
+    "host": "Llama-3-70B",
+    "modality": "LLM",
+    "d": 8192,
+    "primitive_key": "dbaf",
+    "primitive": "\\textbf{DBAF} (ours, per-tensor outlier fold)",
+    "per_token_flops": 16384,
+    "per_prompt_flops": 0,
+    "notes": "static, per-tensor, gated"
+  },
+  {
+    "host": "Llama-3-70B",
+    "modality": "LLM",
+    "d": 8192,
+    "primitive_key": "pcsa_tf",
+    "primitive": "\\textbf{PCSA-tf} (ours, per-input scale routing)",
+    "per_token_flops": 8192,
+    "per_prompt_flops": 240,
+    "notes": "input-conditional, per-quantizer"
+  },
+  {
+    "host": "Llama-3-70B",
+    "modality": "LLM",
+    "d": 8192,
+    "primitive_key": "dbaf_pcsa",
+    "primitive": "\\textbf{DBAF + PCSA-tf} (ours, combined)",
+    "per_token_flops": 24576,
+    "per_prompt_flops": 240,
+    "notes": "ours, both primitives"
+  }
+]

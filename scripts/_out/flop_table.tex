@@ -1,0 +1,21 @@
+% Auto-generated: scripts/compute_flop_table.py
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrl}
+\toprule
+Primitive & FLOPs/tok & per-prompt & Notes \\
+\midrule
+Learned rotation $R$ (FlatQuant/SpinQuant) & 16.8M & 0 & static, per-layer; $d^2$ params \\
+Fast Hadamard $H$ (QuaRot/QuIP\#) & 49.2K & 0 & static, structured; near-zero params \\
+HLUQ log+uniform LUT (AHCPTQ) & 4.1K & 0 & static, per-tensor LUT (SAM) \\
+Bimodal integration (PTQ4SAM) & 8.2K & 0 & static, per-tensor (SAM) \\
+Bound clip (2DQuant DOBI+DQC) & 4.1K & 0 & static, per-tensor (SR) \\
+\textbf{DBAF} (ours, per-tensor outlier fold) & 8.2K & 0 & static, per-tensor, gated \\
+\textbf{PCSA-tf} (ours, per-input scale routing) & 4.1K & 240 & input-conditional, per-quantizer \\
+\textbf{DBAF + PCSA-tf} (ours, combined) & 12.3K & 240 & ours, both primitives \\
+\bottomrule
+\end{tabular}
+\caption{Per-token FLOPs at $d=4096$ for Llama-3-8B-class hosts. DBAF + PCSA-tf are 12$\times$ cheaper than fast Hadamard rotation and 4000$\times$ cheaper than learned rotation per token.}
+\label{tab:primitive-cost}
+\end{table}
