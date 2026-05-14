@@ -264,7 +264,7 @@ recover some of that loss.
 | **FlatQuant + DBAF + PCSA** | **INT4 asym** | **6.966** | **11.143** | S5 baseline 2026-05-13 |
 | FlatQuant + DBAF + PCSA + KV-PCSA v1 (per-anchor scalar) | INT4 asym | 8.32 | (crashed) | S5 v1 calib 2026-05-13 |
 | FlatQuant + DBAF + PCSA + **KV-PCSA v2** (per-token × anchor mult) | INT4 asym | **6.977** | **11.154** | S5 v2 calib 2026-05-13 |
-| FlatQuant + DBAF (**no-gate**) + PCSA | INT4 asym | (C1 running) | (C1 running) | calibrating now |
+| FlatQuant + DBAF (**no-gate**) + PCSA | INT4 asym | **6.910** | **10.968** | C1 finished 2026-05-13 22:27 — BETTER than gated |
 
 **Key finding (updated 2026-05-13):** Pure FlatQuant W4A4 KV4 (no DBAF, no PCSA)
 gives 6.964 WikiText / 11.158 C4 — **statistically identical to FlatQuant + DBAF +
