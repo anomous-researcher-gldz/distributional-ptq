@@ -16,11 +16,14 @@ arch_filenames = [
     for v in scandir(arch_folder)
     if v.endswith("_arch.py")
 ]
-# import all the arch modules
-_arch_modules = [
-    importlib.import_module(f"basicsr.archs.{file_name}")
-    for file_name in arch_filenames
-]
+# import all the arch modules; tolerate missing optional deps (e.g. mamba_ssm)
+_arch_modules = []
+for file_name in arch_filenames:
+    try:
+        _arch_modules.append(importlib.import_module(f"basicsr.archs.{file_name}"))
+    except ImportError as e:
+        # mamba_ssm / causal_conv1d are optional for MambaIRv2 paths only
+        print(f"[basicsr.archs] skipping {file_name}: {e}")
 
 
 def build_network(opt) -> nn.Module:

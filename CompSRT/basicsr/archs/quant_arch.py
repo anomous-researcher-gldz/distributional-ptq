@@ -8,15 +8,13 @@ from functools import partial
 from scipy.linalg import hadamard
 import torch.nn.functional as F
 import numpy as np
-import sys, os
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', '..'))
-from ahcptq.quantization.fake_quant import (
-    fold_outliers,
-    unfold_outliers,
-    is_like_normal_plus_3sigma_outliers,
+import os as _os
+# QuIP#-style Paley/Williamson Hadamard kernel; toggle with COMPSRT_HAD=quip
+from basicsr.archs.quip_hadamard import (
+    hadamard_transform_quip as _quip_fwd,
+    inverse_hadamard_transform_quip as _quip_inv,
 )
-
-DBAF_ALPHA = 0.95
+_USE_QUIP = _os.environ.get("COMPSRT_HAD", "sylvester").lower() == "quip"
 
 calibrated_num = 0
 total_num = 0
@@ -46,42 +44,37 @@ def next_power_of_2(n):
     return 1 if n == 0 else 2**(n - 1).bit_length()
 
 def hadamard_transform_nd(orig_tensor):
-    """Apply an n-dimensional Hadamard transform to an arbitrary tensor."""
-    original_shape = orig_tensor.shape
-    #print(original_shape)
-    slices = tuple(slice(0, orig_dim) for orig_dim in original_shape)
-    new_shape = torch.Tensor([next_power_of_2(s) for s in original_shape])  # Find power-of-2 shape
-    #print(new_shape)
+    """Hadamard transform along the last dim of orig_tensor.
+    Default uses Sylvester via scipy.linalg.hadamard with zero-padding to the next
+    power of two. Setting env var COMPSRT_HAD=quip switches to the QuIP#-style
+    Paley/Williamson kernel which avoids zero-padding for dims 60 and 120 and
+    uses minimal padding for 180 (192 = 12*16) and 10 (12)."""
+    if _USE_QUIP:
+        return _quip_fwd(orig_tensor)
 
-    # Pad tensor to new_shape
+    original_shape = orig_tensor.shape
+    slices = tuple(slice(0, orig_dim) for orig_dim in original_shape)
+    new_shape = torch.Tensor([next_power_of_2(s) for s in original_shape])  # power-of-2 shape
+
     pad_widths = []
-    for orig_dim, new_dim in zip(original_shape, new_shape): 
+    for orig_dim, new_dim in zip(original_shape, new_shape):
         pad_widths.append(int((new_dim-orig_dim).item()))
         pad_widths.append(0)
-        
     pad_widths.reverse()
     pad_widths = tuple(pad_widths)
-    
-    padded_tensor = F.pad(orig_tensor, pad_widths, mode='constant')
-    
-    #print(padded_tensor)
 
+    padded_tensor = F.pad(orig_tensor, pad_widths, mode='constant')
     H = torch.tensor(hadamard(new_shape[-1]))
     H = H.float().to("cuda")
-    had_t= F.linear(padded_tensor, H) / (new_shape[-1]**0.5)
-
-    
-    # rev = F.linear(had_t, H) / (new_shape[-1]**0.5)
-    # print(rev,padded_tensor)
-    # assert(torch.allclose(rev,padded_tensor))
-    # Crop back to original shape
-    # out = had_t[slices]
- 
-    return had_t,slices
+    had_t = F.linear(padded_tensor, H) / (new_shape[-1]**0.5)
+    return had_t, slices
 
 def inverse_hadamard_transform_nd(tensor):
-    """Apply the inverse Hadamard transform (which is the same as the forward transform)."""
-    return hadamard_transform_nd(tensor)  # Since H is its own inverse
+    """Inverse Hadamard transform. Sylvester is symmetric so self-inverse;
+    QuIP#'s Paley path needs the actual transpose."""
+    if _USE_QUIP:
+        return _quip_inv(tensor)
+    return hadamard_transform_nd(tensor)  # Sylvester self-inverse
 def prune_bands(had_x, keep_frac):
     if keep_frac==1: 
         # print("here keep frac 1")
@@ -384,28 +377,31 @@ class FakeQuantizerWeight(FakeQuantizerBase):
         self.name=name 
     def forward(self, x:torch.Tensor):
         if not self.calibrated:
-            # DBAF: fold outliers if tensor matches normal+3sigma profile, else pass through
-            _profile = is_like_normal_plus_3sigma_outliers(x)
-            if _profile['is_like_c']:
-                _T = float(3.0 * _profile['stats']['std'])
-                folded_x, _ = fold_outliers(x, _T, DBAF_ALPHA)
-                calib_x = folded_x
-            else:
-                calib_x = x
-            pruned_calib_x = prune_bands(calib_x, keep_frac=self.pruning_keep_frac)
-            lb, rb, bit_change = DOBI(pruned_calib_x, bit=self.n_bit, one_direction=self.one_direction_search)
+            if _os.environ.get("COMPSRT_DUMP_TENSORS", "0") == "1":
+                _os.makedirs("./weights_and_activs", exist_ok=True)
+                file_path = f"./weights_and_activs/{calibrated_num+1}_weight_prehad.pt"
+                torch.save(x.detach().cpu(), file_path)
+            had_x,slices = hadamard_transform_nd(x)
+            if _os.environ.get("COMPSRT_DUMP_TENSORS", "0") == "1":
+                file_path = f"./weights_and_activs/{calibrated_num+1}_weight_posthad.pt"
+                torch.save(had_x.detach().cpu(), file_path)
+            # print(self.pruning_keep_frac,flush=True)
+            pruned_had_x = prune_bands(had_x,keep_frac=self.pruning_keep_frac) #self.pruning_keep_frac
+            lb, rb,bit_change = DOBI(pruned_had_x, bit=self.n_bit, one_direction=self.one_direction_search)
             self.set_params_lb_manually(lb)
             self.set_params_ub_manually(rb)
 
-            if bit_change == 3:
+            if bit_change ==3: 
+                # print("changing bit")
                 self.set_n_bit_manually(bit_change)
+            # print(self.n_bit)
             self.calibrated = True
             return x
         if self.size_of_input is None:
             self.size_of_input = x.numel()
-
+        
         n_bits = self.n_bit if not self.int_quant else self.round(self.n_bit)
-
+        
         if self.use_bit2bound:
             try:
                 lb, ub = self.bit2bound[int(n_bits.item())]
@@ -415,30 +411,27 @@ class FakeQuantizerWeight(FakeQuantizerBase):
                 print(f'use bit 2 bound.{int(n_bits.item())} not found.')
 
         # (u-l)/(2^n-1)
-        s = (self.upper_bound - self.lower_bound) / (torch.pow(2, n_bits) - 1) + self.alpha
+        s = (self.upper_bound - self.lower_bound) / (torch.pow(2, n_bits) - 1) + self.alpha 
 
-        # DBAF: fold outliers if tensor matches normal+3sigma profile, else quantize directly
-        _profile = is_like_normal_plus_3sigma_outliers(x)
-        _apply_dbaf = _profile['is_like_c']
-        _dbaf_tag = None
-        _T = None
-        if _apply_dbaf:
-            _T = float(3.0 * _profile['stats']['std'])
-            x_q, _dbaf_tag = fold_outliers(x, _T, DBAF_ALPHA)
-        else:
-            x_q = x
-
-        pruned_x = prune_bands(x_q, keep_frac=self.pruning_keep_frac)
-        c = self.clip(pruned_x, self.lower_bound, self.upper_bound)
-        del pruned_x
+        # clip(x,l,u)
+        
+        had_x,slices = hadamard_transform_nd(x)
+        had_x = had_x.to("cuda")
+        pruned_had_x = prune_bands(had_x,keep_frac=self.pruning_keep_frac) #self.pruning_keep_frac
+        c = self.clip(pruned_had_x, self.lower_bound, self.upper_bound)
+        del had_x 
+        del pruned_had_x 
         # int value \in [0,2^n-1]
         Z = self.lower_bound + self.beta_Z
         r = self.round((c - Z) / s)
-        out = s * r + Z
+        #reverse hadamard before return 
+        had_out = s * r + Z
 
-        if _apply_dbaf:
-            out = unfold_outliers(out, _dbaf_tag, _T, DBAF_ALPHA)
-
+        out,_ = inverse_hadamard_transform_nd(had_out) 
+        #print(out.dtype)
+        del had_out 
+        out = out[slices]
+        
         return out.float().to("cuda") 
     
         # n_bits = self.n_bit if not self.int_quant else self.round(self.n_bit)
@@ -477,38 +470,55 @@ class FakeQuantizerAct(FakeQuantizerBase):
 
     def forward(self, x):
         if not self.calibrated:
-            # DBAF: fold outliers if tensor matches normal+3sigma profile, else pass through
-            _profile = is_like_normal_plus_3sigma_outliers(x)
-            if _profile['is_like_c']:
-                _T = float(3.0 * _profile['stats']['std'])
-                folded_x, _ = fold_outliers(x, _T, DBAF_ALPHA)
-                calib_x = folded_x
-            else:
-                calib_x = x
-            lb, rb, bit_change = DOBI(calib_x, bit=self.n_bit, one_direction=self.one_direction_search)
+            if _os.environ.get("COMPSRT_DUMP_TENSORS", "0") == "1":
+                _os.makedirs("./weights_and_activs", exist_ok=True)
+                file_path = f"./weights_and_activs/{calibrated_num+1}_activation_prehad.pt"
+                torch.save(x.detach().cpu(), file_path)
+            had_x,slices = hadamard_transform_nd(x)
+            if _os.environ.get("COMPSRT_DUMP_TENSORS", "0") == "1":
+                file_path = f"./weights_and_activs/{calibrated_num+1}_activation_posthad.pt"
+                torch.save(had_x.detach().cpu(), file_path)
+                # inv = inverse_hadamard_transform_nd(had_x)[0][slices]
+                # print(torch.sum(inv-x))
+                # assert(torch.allclose(inv,x))
+            # pruned_had_x = prune_bands(had_x,keep_frac=0.60)
+            lb, rb,bit_change = DOBI(had_x[slices], bit=self.n_bit, one_direction=self.one_direction_search)
             self.set_params_lb_manually(lb)
             self.set_params_ub_manually(rb)
 
-            if bit_change == 3:
+            # self.hadamard = Parameter(h_out, requires_grad=True).to("cpu")
+            # del h_out 
+            if bit_change ==3: 
+                # print("changing bit")
                 self.set_n_bit_manually(bit_change)
+            # print(self.n_bit)
             self.calibrated = True
             return x
 
         if self.size_of_input is None:
-            self.size_of_input = x.numel()
+            self.size_of_input = x.numel()  
 
         if self.identity:
             return x
-
+        
         if self.dynamic:
+            '''
+                use min,max as clip boundary
+                TODO: use other oberver later.
+            '''
             n_bits = self.n_bit if not self.int_quant else self.round(self.n_bit)
 
             lb = torch.min(x).detach()
             ub = torch.max(x).detach()
             n_bits = n_bits.detach()
 
+            # (u-l)/(2^n-1)
             s = (ub - lb) / (torch.pow(2, n_bits) - 1)
+
+            # clip(x,l,u)
             c = self.clip(x, lb, ub)
+
+            # int value \in [0,2^n-1]
             r = self.round((c - lb) / s)
 
             return s * r + lb
@@ -519,9 +529,10 @@ class FakeQuantizerAct(FakeQuantizerBase):
                 self.upper_bound.data = torch.max(x).detach().clone()
                 self.first_iter = False
             else:
-                self.lower_bound = self.beta * self.lower_bound + (1 - self.beta) * torch.min(x)
-                self.upper_bound = self.beta * self.upper_bound + (1 - self.beta) * torch.max(x)
+                self.lower_bound =  self.beta * self.lower_bound + (1-self.beta) *  torch.min(x)
+                self.upper_bound =  self.beta * self.upper_bound + (1-self.beta) *  torch.max(x)
             return x
+
 
         n_bits = self.n_bit if not self.int_quant else self.round(self.n_bit)
         if self.use_bit2bound:
@@ -531,28 +542,27 @@ class FakeQuantizerAct(FakeQuantizerBase):
                 self.set_params_ub_manually(ub)
             except Exception as e:
                 print(f'use bit 2 bound.{int(n_bits.item())} not found.')
+            
 
         s = (self.upper_bound - self.lower_bound) / (torch.pow(2, n_bits) - 1) + self.alpha
-
-        # DBAF: fold outliers if tensor matches normal+3sigma profile, else quantize directly
-        _profile = is_like_normal_plus_3sigma_outliers(x)
-        _apply_dbaf = _profile['is_like_c']
-        _dbaf_tag = None
-        _T = None
-        if _apply_dbaf:
-            _T = float(3.0 * _profile['stats']['std'])
-            x_q, _dbaf_tag = fold_outliers(x, _T, DBAF_ALPHA)
-        else:
-            x_q = x
-
-        c = self.clip(x_q, self.lower_bound, self.upper_bound)
+        
+        had_x,slices = hadamard_transform_nd(x)
+        had_x = had_x.to("cuda")
+        # pruned_had_x = prune_bands(had_x,keep_frac=0.60)
+        # self.hadamard = self.hadamard.to("cpu")
+        c = self.clip(had_x, self.lower_bound, self.upper_bound)
+        # del had_x 
+        # del pruned_had_x
+        # int value \in [0,2^n-1]
         Z = self.lower_bound + self.beta_Z
         r = self.round((c - Z) / s)
-        out = s * r + Z
-
-        if _apply_dbaf:
-            out = unfold_outliers(out, _dbaf_tag, _T, DBAF_ALPHA)
-
+        #reverse hadamard before return 
+        had_out = s * r + Z
+        
+        out,_ = inverse_hadamard_transform_nd(had_out) 
+        del had_out 
+        out = out[slices]
+        
         return out.float().to("cuda") 
 
         

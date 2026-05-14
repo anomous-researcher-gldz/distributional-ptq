@@ -129,23 +129,21 @@ class TDQuantModel:
 
     def setup_optimizers(self) -> None:
         from basicsr.archs.quant_arch import QuantLinear
-        
+
         logger = get_root_logger()
         train_opt = self.opt["train"]
 
         optim_bound_params = []
         for name, module in self.net_Q.named_modules():
-            if isinstance(module, QuantLinear):
+            if isinstance(module, (QuantLinear, QuantConv2d)):
                 for name, param in module.named_parameters():
                     if name.endswith('bound') or "alpha" in name or "beta_Z" in name:
                         optim_bound_params.append(param)
-                        # logger.info(f'{name} is added in optim_bound_params')
 
         for name, module in self.quant_act.items():
             for name, param in module.named_parameters():
                 if name.endswith('bound') or "alpha" in name or "beta_Z" in name:
                     optim_bound_params.append(param)
-                    # logger.info(f'{name} is added in optim_bound_params')
                         
 
         if train_opt.get('optim_bound', False):
@@ -160,7 +158,7 @@ class TDQuantModel:
     def build_quantized_network(self):
         self.quant_linears:dict[str, QuantLinear] = {}
         self.quant_act:dict[str, FakeQuantizerAct] = {}
-        if self.opt.get('quant_conv', False):
+        if self.opt.get('quant_conv', False) or self.opt.get('quant_all_conv', False):
             self.quant_conv:dict[str, QuantConv2d] = {}
 
         def replace_linear(linear: QuantLinear, config:dict, qkv:bool=False):
@@ -171,12 +169,11 @@ class TDQuantModel:
             q_linear.set_param(linear)
             q_linear.set_quant_flag(True)
             return q_linear
-        if self.opt.get('quant_conv', False):
-            def replace_conv(conv: QuantConv2d, config:dict):
-                q_conv = QuantConv2d(config)
-                q_conv.set_param(conv)
-                q_conv.set_quant_flag(True)
-                return q_conv
+        def replace_conv(conv: 'nn.Conv2d', config:dict):
+            q_conv = QuantConv2d(config)
+            q_conv.set_param(conv)
+            q_conv.set_quant_flag(True)
+            return q_conv
         
         config = {
             'bit': self.opt['bit'],
@@ -220,12 +217,38 @@ class TDQuantModel:
                     module.conv = replace_conv(module.conv, config)
                     self.quant_conv[f'{name}.conv'] = module.conv
 
-        
+        # CNN-backbone quantization (e.g. EDSR): replace every nn.Conv2d in the
+        # body with QuantConv2d, except the tiny mean-shift convs and the
+        # head/tail edges where input is RGB (in_ch=3) which is too small for
+        # the smallest supported Hadamard order.
+        if self.opt.get('quant_all_conv', False):
+            from torch.nn import Conv2d as _Conv2d
+            replaced = []
+            for parent_name, parent in self.net_Q.named_modules():
+                for child_name, child in list(parent.named_children()):
+                    if isinstance(child, _Conv2d):
+                        if child.in_channels < 12:
+                            continue  # skip mean-shift / head edge
+                        full_name = f"{parent_name}.{child_name}" if parent_name else child_name
+                        config['name'] = full_name
+                        new = replace_conv(child, config)
+                        setattr(parent, child_name, new)
+                        self.quant_conv[full_name] = new
+                        replaced.append(full_name)
+            self.logger.info(f"quant_all_conv: replaced {len(replaced)} Conv2d layers")
+
+
     def build_hooks_on_Q_and_F(self):
         from basicsr.archs.swinir_arch import BasicLayer, SwinTransformerBlock
 
         self.feature_F = []
         self.feature_Q = []
+
+        # For non-SwinIR backbones (e.g. EDSR), disable the feature loss path
+        # since BasicLayer/SwinTransformerBlock don't appear in the model graph.
+        if self.opt.get('quant_all_conv', False):
+            self.feature_loss = None
+            return
 
         if self.opt["quant"]["hook_per_layer"]:
             hook_type = BasicLayer
@@ -284,7 +307,13 @@ class TDQuantModel:
         loss_dict = OrderedDict()
                 
         if self.cri_pix:
-            l_pix = self.cri_pix(self.output_Q, self.output_F) / self.output_Q.numel() * self.output_Q.size(0)
+            # Default normalization (kept for SwinIR backward compat) divides by
+            # numel and rescales by batch size, which crushes the gradient when
+            # gt_size is large. EDSR/CNN configs can opt out via train.pixel_normalize: False.
+            if self.opt['train'].get('pixel_normalize', True):
+                l_pix = self.cri_pix(self.output_Q, self.output_F) / self.output_Q.numel() * self.output_Q.size(0)
+            else:
+                l_pix = self.cri_pix(self.output_Q, self.output_F)
             l_total += l_pix
             loss_dict["l_pix"] = l_pix
 
@@ -473,8 +502,9 @@ class TDQuantModel:
         # pad to multiplication of window_size
         # we do not use self-ensamble.
         if not self.opt['quant'].get('self_ensamble', False):
-            
-            window_size = self.opt["network_Q"]["window_size"]
+            # SwinIR requires padding to a multiple of window_size; CNNs (EDSR)
+            # don't, so default window_size=1 if absent.
+            window_size = self.opt["network_Q"].get("window_size", 1)
             scale = self.opt.get("scale", 1)
             mod_pad_h, mod_pad_w = 0, 0
             _, _, h, w = self.lq.size()

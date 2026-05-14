@@ -85,7 +85,9 @@ run_cell() {
   local SCALE=$1
   local ARM=$2
 
-  local CKPT="${CKPT_ROOT}/002_lightweightSR_DIV2K_s64w8_SwinIR-S_x${SCALE}.pth"
+  local FP_CKPT="${CKPT_ROOT}/002_lightweightSR_DIV2K_s64w8_SwinIR-S_x${SCALE}.pth"
+  local Q_CKPT_DIR="/home/ubuntu/unifying-ptq/2DQuant/pretrained/train_2DQuant_x${SCALE}_bit4/models"
+  local Q_CKPT=$(ls "${Q_CKPT_DIR}"/net_Q_*.pth | tail -1)
   local RUN_NAME="2DQuant_x${SCALE}_w4a4_arm${ARM}"
   local OUT_DIR="${OUT_ROOT}/x${SCALE}/${ARM}"
   local RESULTS_DIR="results/${RUN_NAME}"  # relative to 2DQuant/
@@ -96,7 +98,7 @@ run_cell() {
   # The --force_yml override syntax uses colon for nested keys.
   # path:pretrain_network_Q overrides both path.pretrain_network_Q AND
   # pathFP.pretrain_network_FP (both point to the same SwinIR-S ckpt).
-  local FORCE_YML="bit=4 name=${RUN_NAME} path:pretrain_network_Q=${CKPT} pathFP:pretrain_network_FP=${CKPT}"
+  local FORCE_YML="bit=4 name=${RUN_NAME} path:pretrain_network_Q=${Q_CKPT} pathFP:pretrain_network_FP=${FP_CKPT}"
 
   # SwinIR-S embed_dim=60; use as descriptor dim for synthetic PCSA-tf pilot.
   local EMBED_DIM=60
@@ -105,7 +107,7 @@ run_cell() {
     A)
       # Vanilla 2DQuant W4A4 — no patch
       python basicsr/test.py \
-        -opt options/test/test_2DQuant_x${SCALE}.yml \
+        -opt options/test/test_2DQuant_x${SCALE}_emnlp.yml \
         --force_yml $FORCE_YML \
         2>&1 | tee "$OUT_DIR/run.log"
       ;;
@@ -121,7 +123,7 @@ import twodquant_dbaf_pcsa_patch as p
 p.install_dbaf_patches(dbaf_alpha=0.95)
 import runpy
 runpy.run_path('basicsr/test.py', run_name='__main__')
-" -opt options/test/test_2DQuant_x${SCALE}.yml \
+" -opt options/test/test_2DQuant_x${SCALE}_emnlp.yml \
         --force_yml $FORCE_YML \
         2>&1 | tee "$OUT_DIR/run.log"
       ;;
@@ -145,7 +147,7 @@ p.fit_pcsa_tf_on_calib_data(descs, acts, K=8)
 p.install_pcsa_tf()
 import runpy
 runpy.run_path('basicsr/test.py', run_name='__main__')
-" -opt options/test/test_2DQuant_x${SCALE}.yml \
+" -opt options/test/test_2DQuant_x${SCALE}_emnlp.yml \
         --force_yml $FORCE_YML \
         2>&1 | tee "$OUT_DIR/run.log"
       ;;
@@ -167,7 +169,7 @@ p.fit_pcsa_tf_on_calib_data(descs, acts, K=8)
 p.install_pcsa_tf()
 import runpy
 runpy.run_path('basicsr/test.py', run_name='__main__')
-" -opt options/test/test_2DQuant_x${SCALE}.yml \
+" -opt options/test/test_2DQuant_x${SCALE}_emnlp.yml \
         --force_yml $FORCE_YML \
         2>&1 | tee "$OUT_DIR/run.log"
       ;;

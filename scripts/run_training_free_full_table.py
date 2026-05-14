@@ -240,12 +240,25 @@ def _apply_pcsa_tf_to_llm(model, state: dict):
             return orig_forward(x, *args, **kwargs)
         return _wrapped
 
+    # Only wrap Linears whose input dim matches the descriptor dim.
+    # Anchors were fit on decoder-layer-input hidden states (hidden_size),
+    # so only hidden_size-input Linears (q/k/v_proj, o_proj's input, gate/up_proj)
+    # can use them; intermediate-dim Linears (down_proj input = intermediate_size)
+    # are skipped to avoid shape mismatch.  Production version would maintain
+    # per-Linear states; this scoping matches the fit-time descriptor.
+    anchor_dim = state["anchors"].shape[1]
     n_wrapped = 0
+    n_skipped = 0
     for name, mod in model.named_modules():
-        if isinstance(mod, nn.Linear) and "lm_head" not in name:
-            mod.forward = _make_forward_hook(mod.forward, state)
-            n_wrapped += 1
-    print(f"[driver] PCSA-tf activation hooks installed on {n_wrapped} Linear layers", flush=True)
+        if not isinstance(mod, nn.Linear) or "lm_head" in name:
+            continue
+        if mod.in_features != anchor_dim:
+            n_skipped += 1
+            continue
+        mod.forward = _make_forward_hook(mod.forward, state)
+        n_wrapped += 1
+    print(f"[driver] PCSA-tf activation hooks installed on {n_wrapped} Linear layers "
+          f"(skipped {n_skipped} mismatched-dim Linears)", flush=True)
     return model
 
 

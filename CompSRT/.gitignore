@@ -143,3 +143,15 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# Rebuttal calibration tensor dumps (60GB+, never pushed)
+weights_and_activs/
+weights_and_activs_mamba/
+weights_and_activs_swinir_quip/
+weights_and_activs_sylvester/
+
+# Rebuttal sentinel
+rebuttal_results/ablate_done.flag
+
+# OpenReview review PDFs (not artifacts)
+CompSRT*OpenReview*.pdf

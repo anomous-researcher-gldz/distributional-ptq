@@ -47,8 +47,29 @@ def _quantize_tensor_uniform(w: torch.Tensor, bits: int, per_channel: bool = Tru
     return (q * scale).to(w.dtype)
 
 
-def _quantize_per_channel_with_dbaf(w: torch.Tensor, bits: int, alpha: float, T_sigma: float = 3.0) -> torch.Tensor:
-    """Per-row DBAF fold + quant + unfold, computing T per row from row sigma."""
+def _quantize_per_channel_with_dbaf(
+    w: torch.Tensor,
+    bits: int,
+    alpha: float,
+    T_sigma: float = 3.0,
+    gate_frac3_max: float | None = None,
+) -> torch.Tensor:
+    """Per-row DBAF fold + quant + unfold, computing T per row from row sigma.
+
+    If gate_frac3_max is not None, fall back to plain per-channel RTN on any
+    layer whose flattened weight tensor exceeds the gate (frac of |z|>3 >
+    gate_frac3_max). Lets us test whether DBAF should be selectively applied.
+    """
+    if gate_frac3_max is not None:
+        try:
+            from ahcptq.quantization.fake_quant import is_like_normal_plus_3sigma_outliers
+        except ImportError:
+            import sys, os
+            sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..")))
+            from ahcptq.quantization.fake_quant import is_like_normal_plus_3sigma_outliers
+        gate = is_like_normal_plus_3sigma_outliers(w, frac3_max=gate_frac3_max)
+        if not gate["is_like_c"]:
+            return _quantize_tensor_uniform(w, bits, per_channel=True)
     qmax = 2 ** (bits - 1) - 1
     # Per-row T
     sigma = w.std(dim=1, keepdim=True)
