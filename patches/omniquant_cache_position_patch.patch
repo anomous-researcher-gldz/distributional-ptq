@@ -1,0 +1,39 @@
+diff --git a/models/int_llama_layer.py b/models/int_llama_layer.py
+index 654e61b..6d7e36f 100644
+--- a/models/int_llama_layer.py
++++ b/models/int_llama_layer.py
+@@ -121,7 +121,12 @@ class QuantLlamaAttention(nn.Module):
+         kv_seq_len = key_states.shape[-2]
+         if past_key_value is not None:
+             kv_seq_len += past_key_value[0].shape[-2]
+-        cos, sin = self.rotary_emb(value_states, seq_len=kv_seq_len)
++        # Support both old (seq_len kwarg) and new (position_ids) rotary_emb APIs
++        # transformers >= 4.38 dropped the seq_len keyword in favour of position_ids
++        try:
++            cos, sin = self.rotary_emb(value_states, seq_len=kv_seq_len)
++        except TypeError:
++            cos, sin = self.rotary_emb(value_states, position_ids)
+         query_states, key_states = apply_rotary_pos_emb(query_states, key_states, cos, sin, position_ids)
+ 
+ 
+@@ -149,6 +154,10 @@ class QuantLlamaAttention(nn.Module):
+             )
+ 
+         if attention_mask is not None:
++            # Newer transformers may produce a mask with one extra column; truncate
++            # to kv_seq_len to stay compatible with older OmniQuant logic.
++            if attention_mask.size(-1) > kv_seq_len:
++                attention_mask = attention_mask[..., :kv_seq_len]
+             if attention_mask.size() != (bsz, 1, q_len, kv_seq_len):
+                 raise ValueError(
+                     f"Attention mask should be of size {(bsz, 1, q_len, kv_seq_len)}, but is {attention_mask.size()}"
+@@ -218,6 +227,9 @@ class QuantLlamaDecoderLayer(nn.Module):
+         past_key_value: Optional[Tuple[torch.Tensor]] = None,
+         output_attentions: Optional[bool] = False,
+         use_cache: Optional[bool] = False,
++        cache_position: Optional[torch.LongTensor] = None,
++        position_embeddings: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
++        **kwargs,
+     ) -> Tuple[torch.FloatTensor, Optional[Tuple[torch.FloatTensor, torch.FloatTensor]]]:
+         """
+         Args:

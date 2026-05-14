@@ -50,6 +50,7 @@ run_arm_A() {
   echo "[arm_A] vanilla OmniQuant W4A4 on LLaMA-3-8B" | tee "$OUT/arm_A_vanilla.log"
   python main.py $COMMON_ARGS \
     --output_dir "$OUT/arm_A_vanilla" \
+    --save_dir "$OUT/arm_A_vanilla/model" \
     2>&1 | tee -a "$OUT/arm_A_vanilla.log"
 }
 
@@ -67,6 +68,7 @@ import runpy
 runpy.run_path('main.py', run_name='__main__')
 " $COMMON_ARGS \
     --output_dir "$OUT/arm_B_dbaf" \
+    --save_dir "$OUT/arm_B_dbaf/model" \
     2>&1 | tee -a "$OUT/arm_B_dbaf.log"
 }
 
@@ -91,6 +93,7 @@ import runpy
 runpy.run_path('main.py', run_name='__main__')
 " $COMMON_ARGS \
     --output_dir "$OUT/arm_C_pcsa_tf" \
+    --save_dir "$OUT/arm_C_pcsa_tf/model" \
     2>&1 | tee -a "$OUT/arm_C_pcsa_tf.log"
 }
 
@@ -112,6 +115,7 @@ import runpy
 runpy.run_path('main.py', run_name='__main__')
 " $COMMON_ARGS \
     --output_dir "$OUT/arm_D_both" \
+    --save_dir "$OUT/arm_D_both/model" \
     2>&1 | tee -a "$OUT/arm_D_both.log"
 }
 

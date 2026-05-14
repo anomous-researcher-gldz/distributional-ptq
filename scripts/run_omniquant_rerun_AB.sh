@@ -25,7 +25,8 @@
 #   /data/outputs/G6-omniquant-llama3-8b/arm_A_vanilla/
 #   /data/outputs/G6-omniquant-llama3-8b/arm_B_dbaf/
 
-set -euo pipefail
+set -uo pipefail
+# NOTE: deliberately no `-e` — we want Arm B to still run even if Arm A fails.
 
 ARM="${1:-AB}"   # A | B | AB
 
@@ -76,6 +77,7 @@ run_arm_A() {
   echo "[rerun_AB] === Arm A (vanilla) re-run at $(date) ===" | tee -a "$OUT/arm_A_vanilla.log"
   python main.py $COMMON_ARGS \
     --output_dir "$OUT/arm_A_vanilla" \
+    --save_dir "$OUT/arm_A_vanilla/model" \
     2>&1 | tee -a "$OUT/arm_A_vanilla.log"
   echo "[rerun_AB] Arm A finished with exit code $?"
 }
@@ -92,6 +94,7 @@ import runpy
 runpy.run_path('main.py', run_name='__main__')
 " $COMMON_ARGS \
     --output_dir "$OUT/arm_B_dbaf" \
+    --save_dir "$OUT/arm_B_dbaf/model" \
     2>&1 | tee -a "$OUT/arm_B_dbaf.log"
   echo "[rerun_AB] Arm B finished with exit code $?"
 }
