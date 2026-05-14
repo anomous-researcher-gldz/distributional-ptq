@@ -424,3 +424,49 @@ relative to a perfectly-tuned baseline, but the *relative* gain story remains.
 **Bucket 2 baselines:** FlatQuant (LLM), AHCPTQ (SAM), CompSRT (SR) all use
 their published fine-tuning pipelines (reconstruction loss, learned rotations,
 Hadamard transforms, etc.). DBAF is integrated as a folding step before quantization.
+
+---
+
+## EMNLP-pivot additions (2026-05-14)
+
+### G7 — 2DQuant SwinIR-light W4A4 4-arm × 3-scale sweep (Set5)
+
+Same model loaded from upstream pretrained `train_2DQuant_x{S}_bit4` ckpts;
+strict_load_Q=false lets CompSRT's alpha/beta_Z init at 0 (= vanilla 2DQuant).
+
+| Scale | A vanilla | B +DBAF | C +PCSA-tf | D +DBAF+PCSA-tf |
+|---|---|---|---|---|
+| ×2 | 37.82 | 37.81 | 37.82 | 37.81 |
+| ×3 | 30.11 | 30.09 | 30.11 | 30.09 |
+| ×4 | 31.75 | 31.75 | 31.75 | 31.75 |
+
+**Interpretation**: 2DQuant's DOBI bound search ALREADY addresses dense-with-outliers
+in SwinIR weights/acts; DBAF folding produces ~zero improvement (within 0.02 dB noise).
+PCSA-tf is a no-op for SR (no prompts → no per-input adaptation to do). This is
+**saturation evidence** mirroring the FlatQuant cell on LLM (6.964 → 6.910).
+
+Full per-dataset numbers in `/data/outputs/G7-2dquant-swinir/x{2,3,4}/{A,B,C,D}/eval.json`.
+
+### §4.X primitive op-cost (FLOP table + wall-clock on A100 d=4096)
+
+| Primitive | FLOPs/tok @ d=4096 | ms/forward (A100, 32 blocks, seq 4096) |
+|---|---|---|
+| Learned R | 16.8M | 61.3 |
+| Fast Hadamard | 49K | 58.8 |
+| HLUQ (AHCPTQ) | 4K | — |
+| Bimodal int. (PTQ4SAM) | 8K | — |
+| Bound clip (2DQuant) | 4K | — |
+| **DBAF** | **8K** | **68.4** |
+| **PCSA-tf** | **4K/tok + 240/prompt** | **44.1** |
+| **DBAF + PCSA-tf** | **12K** | **72.9** |
+
+Wall-clock honest takeaways:
+- PCSA-tf alone: **1.34× faster than fast Hadamard** at d=4096 wall-clock.
+- DBAF in unfused PyTorch: comparable to rotation (theoretical FLOP advantage
+  doesn't translate due to cuBLAS efficiency at d²-matmul). Triton fusion
+  would close the gap.
+- Mechanism axis (input-conditioning, per-tensor selectivity, training-free)
+  is the strongest novelty axis empirically.
+
+Generator: `scripts/compute_flop_table.py`, `scripts/micro_benchmark_primitives.py`.
+
