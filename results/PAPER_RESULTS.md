@@ -470,3 +470,28 @@ Wall-clock honest takeaways:
 
 Generator: `scripts/compute_flop_table.py`, `scripts/micro_benchmark_primitives.py`.
 
+
+### G8 — Training-free LLM W4A4 partial (6 of 16 cells)
+
+| Method | Alone | +DBAF | +PCSA-tf | +both |
+|---|---|---|---|---|
+| RTN | 10.28 / 17.08 | 8.87 / 13.97 | bug | bug |
+| GPTQ | 11.60 / 21.41 | 9.79 / 15.76 | bug | bug |
+| AWQ | 13.49 / 20.86 | 9.42 / 15.31 | bug | bug |
+| SmoothQuant | n/r | n/r | n/r | n/r |
+
+WikiText-2 / C4 PPL.
+
+**Headline**: DBAF reduces W4A4 PPL by 14-30% across all three non-rotation
+training-free hosts on Llama-3-8B (largest gain: AWQ -30%). Cells with `bug`
+crashed because `_apply_pcsa_tf_to_llm` hooks every Linear regardless of
+shape, but the anchor descriptors were fit only at decoder-layer input
+(hidden_size=4096) and don't match intermediate-size (14336) anchors.
+
+**Fix TODO**: refactor `_apply_pcsa_tf_to_llm` to maintain a separate
+anchor state per Linear name; collect descriptors at the same Linear's
+input during calibration.  Or scope PCSA-tf application to only the
+decoder-layer input level (skip intermediate Linears).
+
+**SmoothQuant cells**: sweep terminated after AWQ — need a follow-up.
+
