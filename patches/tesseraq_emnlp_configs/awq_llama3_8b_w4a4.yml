@@ -6,7 +6,7 @@ model:
     torch_dtype: auto
 calib:
     name: pileval
-    download: False
+    download: True
     path: ../cache/data/calib/pileval
     n_samples: 128
     bs: -1
@@ -16,7 +16,7 @@ calib:
 eval:
     eval_pos: [fake_quant]
     name: [wikitext2, c4]
-    download: False
+    download: True
     path: ../cache/data/eval
     bs: 1
     inference_per_block: False

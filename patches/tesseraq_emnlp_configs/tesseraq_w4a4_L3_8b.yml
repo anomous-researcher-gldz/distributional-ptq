@@ -6,7 +6,7 @@ model:
     torch_dtype: auto
 calib:
     name: c4
-    download: False
+    download: True
     n_samples: 512
     path: ../cache/data/calib/c4
     bs: 1
@@ -16,7 +16,7 @@ calib:
 eval:
     eval_pos: [fake_quant]
     name: [wikitext2, c4]
-    download: False
+    download: True
     path: ../cache/data/eval
     bs: 1
     seq_len: 2048
