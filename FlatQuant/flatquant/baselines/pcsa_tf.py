@@ -92,15 +92,19 @@ def apply_pcsa_tf_to_activation(
 ) -> torch.Tensor:
     """Per-prompt symmetric INT[bits] fake-quantization using anchor-routed scale.
 
+    Symmetric int{bits}: integer codes span [-(2^(bits-1)-1), +(2^(bits-1)-1)],
+    so step = S / (2^(bits-1) - 1). For bits=4 the step is S/7 (NOT S/15);
+    using the wrong qmax compresses dequant values to ~0.47*S per Linear and
+    propagates destructively through deep transformers.
+
     x: [B, ...] activation tensor; desc: [B, D] prompt descriptors.
     Returns: same shape as x, fake-quantized.
     """
-    qmax = 2 ** bits - 1
+    qmax = 2 ** (bits - 1) - 1  # symmetric int{bits}: 7 for bits=4
     anchor_ids = route_pcsa_tf(desc, state)  # [B]
     scale_per_prompt = state["scales"][anchor_ids]  # [B]
-    # Broadcast scale over the trailing dims of x
     extra_dims = x.dim() - 1
     scale = scale_per_prompt.view(-1, *([1] * extra_dims)) / qmax
     scale = scale.clamp(min=1e-9)
-    q = torch.round(x / scale).clamp(-qmax // 2, qmax // 2)
+    q = torch.round(x / scale).clamp(-qmax, qmax)
     return (q * scale).to(x.dtype)
