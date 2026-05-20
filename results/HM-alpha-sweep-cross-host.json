@@ -1,0 +1,25 @@
+{
+  "title": "DBAF alpha sensitivity across 4 training-free LLM hosts, LLaMA-3-8B W4A4",
+  "model": "Meta-Llama-3-8B",
+  "config": "W4A4 (W and A folded with same alpha)",
+  "metric": "wikitext2 PPL (raw, lower better)",
+  "alpha_grid": [0.25, 0.5, 0.75],
+  "cells": {
+    "RTN":        {"0.25": 16.31, "0.5": 43.08,   "0.75": 250.60},
+    "GPTQ":       {"0.25": 32.65, "0.5": 104.10,  "0.75": 348.66},
+    "AWQ":        {"0.25": 17.02, "0.5": 73.19,   "0.75": 579.96},
+    "SmoothQuant":{"0.25": 17.32, "0.5": 121.96,  "0.75": 1477.98}
+  },
+  "c4_cells": {
+    "RTN":        {"0.25": 24.49, "0.5": 62.82,   "0.75": 310.08},
+    "GPTQ":       {"0.25": 49.06, "0.5": 150.02,  "0.75": 363.25},
+    "AWQ":        {"0.25": 25.97, "0.5": 101.65,  "0.75": 520.03},
+    "SmoothQuant":{"0.25": 26.05, "0.5": 133.30,  "0.75": 1005.35}
+  },
+  "ratio_0p75_over_0p25": {
+    "RTN": 15.4, "GPTQ": 10.7, "AWQ": 34.1, "SmoothQuant": 85.3
+  },
+  "monotonic_per_host": true,
+  "all_hosts_minimized_at_alpha_0p25": true,
+  "notes": "Confirms the RTN-only alpha-sensitivity finding extends to all four training-free LLM hosts. Monotonic degradation 0.25 -> 0.5 -> 0.75 holds in every host. AWQ and SmoothQuant degrade fastest because their per-channel scale migration amplifies the fold-induced noise on outlier positions. Generated locally on A100 by /tmp/localsweep/driver.sh."
+}
