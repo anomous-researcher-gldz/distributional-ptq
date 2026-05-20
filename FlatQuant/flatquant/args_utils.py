@@ -105,6 +105,9 @@ def parser_gen():
                         help="Bypass is_like_normal_plus_3sigma_outliers gate; DBAF fires on every layer.")
     parser.add_argument("--disable_dbaf", default=False, action="store_true",
                         help="Disable DBAF fold/unfold for ablation experiments.")
+    parser.add_argument("--dbaf_alpha", type=float, default=0.99,
+                        help="DBAF fold compression alpha (lower=more aggressive). "
+                             "Paper recommendation for W4A4 LLMs: 0.25.")
     parser.add_argument("--disable_pcsa", default=False, action="store_true",
                         help="Disable PCSA (Prompt-Conditioned Scale Anchoring) for ablation experiments.")
     

@@ -136,7 +136,7 @@ def _load_llm(path: str):
     """Returns (model, layers_list, hidden_dim, build_input_fn)."""
     from transformers import AutoModelForCausalLM, AutoTokenizer
     tok = AutoTokenizer.from_pretrained(path)
-    model = AutoModelForCausalLM.from_pretrained(path, torch_dtype=torch.float16).cuda()
+    model = AutoModelForCausalLM.from_pretrained(path, torch_dtype=torch.bfloat16).cuda()
     model.eval()
     layers = list(model.model.layers)  # LlamaDecoderLayer or compatible
     d = model.config.hidden_size
@@ -144,6 +144,7 @@ def _load_llm(path: str):
     def build_input(seq_len: int = 4096):
         ids = torch.randint(0, tok.vocab_size, (1, seq_len), device="cuda")
         return ids
+    # Note: bfloat16 load (torchao W4A16 expects bf16 scales)
 
     def fwd(ids):
         with torch.no_grad():
@@ -153,21 +154,22 @@ def _load_llm(path: str):
 
 def _load_sam(variant: str):
     """variant in {b, l, h}. Returns (fwd, layers, d, build_input)."""
+    sys.path.insert(0, "/home/ubuntu/unifying-ptq/projects/instance_segment_anything/models")
     import segment_anything as sa
     ckpt_map = {
-        "b": "/data/modelzoo/sam_vit_b_01ec64.pth",
-        "l": "/data/modelzoo/sam_vit_l_0b3195.pth",
-        "h": "/data/modelzoo/sam_vit_h_4b8939.pth",
+        "b": "/home/ubuntu/unifying-ptq/ckpt/sam_vit_b_01ec64.pth",
+        "l": "/home/ubuntu/unifying-ptq/ckpt/sam_vit_l_0b3195.pth",
+        "h": "/home/ubuntu/unifying-ptq/ckpt/sam_vit_h_4b8939.pth",
     }
     sam = sa.sam_model_registry[f"vit_{variant}"](checkpoint=ckpt_map[variant])
-    sam = sam.half().cuda()
+    sam = sam.to(torch.bfloat16).cuda()
     sam.eval()
     enc = sam.image_encoder
     layers = list(enc.blocks)   # transformer blocks
     d = layers[0].attn.qkv.in_features
 
     def build_input():
-        img = torch.randn(1, 3, 1024, 1024, dtype=torch.float16, device="cuda")
+        img = torch.randn(1, 3, 1024, 1024, dtype=torch.bfloat16, device="cuda")
         return img
 
     def fwd(img):
@@ -278,7 +280,7 @@ def main():
     LLM_PATHS = {
         "llama3-8b": "/data/modelzoo/meta-llama/Meta-Llama-3-8B",
         "llama2-7b": "/data/modelzoo/meta-llama/Llama-2-7b-hf",
-        "qwen25-7b": "/data/modelzoo/qwen/Qwen2.5-7B",
+        "qwen25-7b": "/data/modelzoo/Qwen/Qwen2.5-7B",
     }
     SAM_VARIANTS = {"sam-b": "b", "sam-l": "l", "sam-h": "h"}
     SR_SCALES    = {"swinir-x2": 2, "swinir-x3": 3, "swinir-x4": 4}

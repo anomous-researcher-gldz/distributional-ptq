@@ -27,6 +27,7 @@ logger = logging.getLogger('ahcptq')
 # fold/unfold mechanism. Toggle via set_no_dbaf_gate(True) at the top of
 # the training/inference script.
 _NO_DBAF_GATE = False
+_NO_DBAF = False
 
 
 def set_no_dbaf_gate(value: bool):
@@ -36,6 +37,16 @@ def set_no_dbaf_gate(value: bool):
 
 def get_no_dbaf_gate() -> bool:
     return _NO_DBAF_GATE
+
+
+def set_no_dbaf(value: bool):
+    """Disable DBAF entirely on LSQ/AdaRound quantizers (PCSA-only ablation)."""
+    global _NO_DBAF
+    _NO_DBAF = bool(value)
+
+
+def get_no_dbaf() -> bool:
+    return _NO_DBAF
 # class DBAFState(nn.Module):
 #     def __init__(self, k=3.0):
 #         super().__init__()
@@ -175,7 +186,10 @@ def is_like_normal_plus_3sigma_outliers(
     cond_kurt = (kurt_min <= kurt <= kurt_max)
     cond_frac3 = (frac3_min <= frac3 <= frac3_max)
 
-    if _NO_DBAF_GATE:
+    if _NO_DBAF:
+        # DBAF disabled entirely — PCSA-only ablation
+        is_like_c = False
+    elif _NO_DBAF_GATE:
         # gate bypass for ablation experiments — always fire DBAF
         is_like_c = True
     else:

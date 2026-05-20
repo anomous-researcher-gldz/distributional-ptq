@@ -9,14 +9,17 @@ from flatquant.quant_utils import (
 from flatquant.flat_utils import kronecker_matmul
 
 class FlatQuantizedLinear(nn.Module):
-    def __init__(self, args, linear: nn.Linear, dbaf_alpha: float = 0.99):
+    def __init__(self, args, linear: nn.Linear, dbaf_alpha: float | None = None):
         super(FlatQuantizedLinear, self).__init__()
         self.args = args
         self.linear = linear
 
+        if dbaf_alpha is None:
+            dbaf_alpha = getattr(args, "dbaf_alpha", 0.99)
+
         self.weight_quantizer = WeightQuantizer()
         self.weight_quantizer.configure(args.w_bits, perchannel=True, sym=not(args.w_asym), mse=False)
-        self.act_quantizer = ActivationQuantizer(bits=args.a_bits, sym=not(args.a_asym), lac=args.lac, groupsize=args.a_groupsize, )
+        self.act_quantizer = ActivationQuantizer(bits=args.a_bits, sym=not(args.a_asym), lac=args.lac, groupsize=args.a_groupsize, dbaf_alpha=dbaf_alpha)
 
         self.lwc = args.lwc
         if self.lwc:

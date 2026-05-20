@@ -98,28 +98,58 @@ def _quantize_act_per_token(x: torch.Tensor, bits: int = 4) -> torch.Tensor:
     return (q * scale).to(x.dtype)
 
 
+def _dbaf_quantize_act_per_token(x: torch.Tensor, bits: int = 4,
+                                 alpha: float = 0.25,
+                                 T_sigma: float = 3.0) -> torch.Tensor:
+    """Per-token DBAF + symmetric act quant (matches act_quant._ActDBAFQuantWrapper).
+
+    Folds outliers per token at T = T_sigma * std before per-token RTN, then
+    unfolds. alpha controls fold compression (lower = more aggressive).
+    """
+    qmax = 2 ** (bits - 1) - 1
+    sigma = x.std(dim=-1, keepdim=True).clamp(min=1e-9)
+    T = T_sigma * sigma
+    sgn = torch.sign(x)
+    mask = x.abs() > T
+    x_in = torch.where(mask, sgn * T + alpha * (x - sgn * T), x)
+    scale = x_in.abs().amax(dim=-1, keepdim=True).clamp(min=1e-9) / qmax
+    q = torch.round(x_in / scale).clamp(-qmax, qmax)
+    x_q = (q * scale).to(x.dtype)
+    x_q = torch.where(mask, sgn * T + (1.0 / alpha) * (x_q - sgn * T), x_q)
+    return x_q
+
+
 class _ActDivideWrapper(nn.Module):
     """Wraps a Linear so the act is divided by `s` before the matmul.
 
     s is fixed (registered as buffer) from the SmoothQuant offline pass.
     Activation quant happens AFTER division (so per-token scale sees flatter act).
+    If use_dbaf=True, applies DBAF fold/unfold around the per-token quant.
     """
-    def __init__(self, linear: nn.Linear, s: torch.Tensor, act_bits: int):
+    def __init__(self, linear: nn.Linear, s: torch.Tensor, act_bits: int,
+                 use_dbaf: bool = False, dbaf_alpha: float = 0.25):
         super().__init__()
         self.linear = linear
         self.register_buffer("smooth_scale", s.detach())
         self.act_bits = act_bits
+        self.use_dbaf = use_dbaf
+        self.dbaf_alpha = dbaf_alpha
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x_div = x / self.smooth_scale
-        x_q = _quantize_act_per_token(x_div, bits=self.act_bits)
+        if self.use_dbaf:
+            x_q = _dbaf_quantize_act_per_token(x_div, bits=self.act_bits,
+                                               alpha=self.dbaf_alpha)
+        else:
+            x_q = _quantize_act_per_token(x_div, bits=self.act_bits)
         return self.linear(x_q)
 
 
 def quantize_model(model, bits: int = 4, calibration_data=None,
                   alpha: float = 0.5,
                   use_dbaf: bool = False,
-                  act_bits: int | None = None):
+                  act_bits: int | None = None,
+                  dbaf_alpha: float = 0.25):
     """SmoothQuant W{bits}A{act_bits} migration + RTN per-channel weights.
 
     Args:
@@ -127,9 +157,13 @@ def quantize_model(model, bits: int = 4, calibration_data=None,
         calibration_data: iterable of token-id batches.
         alpha: smoothing strength (0=no migration; 1=full migration to weights).
                 ICML paper recommends 0.5 for general LLMs.
-        use_dbaf: if True, apply DBAF folding gate on the migrated weight per
-                  Linear layer (matches the RTN baseline's DBAF integration).
+        use_dbaf: if True, apply DBAF folding on BOTH the migrated weight and
+                  the per-token activation quant (matches the RTN/AWQ/GPTQ
+                  hosts' DBAF integration).
         act_bits: defaults to `bits` if None.
+        dbaf_alpha: DBAF fold parameter applied to BOTH weight and act paths
+                  when use_dbaf=True. Default 0.25 from the W4A4 LLM
+                  alpha-sweep (Table~\\ref{tab:alpha-sensitivity}).
     """
     if calibration_data is None:
         raise ValueError("SmoothQuant requires calibration_data to compute "
@@ -152,7 +186,7 @@ def quantize_model(model, bits: int = 4, calibration_data=None,
         new_w, smooth_s = _smooth_per_layer(module.weight.data, s, alpha=alpha)
 
         if use_dbaf:
-            qw = _quantize_per_channel_with_dbaf(new_w, bits=bits, alpha=0.75)
+            qw = _quantize_per_channel_with_dbaf(new_w, bits=bits, alpha=dbaf_alpha)
         else:
             qw = _quantize_tensor_uniform(new_w, bits=bits, per_channel=True)
         module.weight.data.copy_(qw)
@@ -163,6 +197,7 @@ def quantize_model(model, bits: int = 4, calibration_data=None,
         child_name = name.split(".")[-1]
         parent = name_to_module[parent_name] if parent_name else model
         setattr(parent, child_name,
-                _ActDivideWrapper(module, smooth_s, act_bits=act_bits))
+                _ActDivideWrapper(module, smooth_s, act_bits=act_bits,
+                                  use_dbaf=use_dbaf, dbaf_alpha=dbaf_alpha))
 
     return model

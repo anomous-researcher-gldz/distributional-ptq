@@ -1,0 +1,1165 @@
+{
+  "summary": {
+    "scale": 2,
+    "dataset": "Set5_HR",
+    "baseline_psnr": 30.331578397740998,
+    "n_layers": 103,
+    "n_gate_pass": 100,
+    "n_gate_fail": 3,
+    "mean_delta_gate_pass": 0.0007714111230528431,
+    "mean_delta_gate_fail": 0.021133816641739855,
+    "max_delta": 0.15561496863362123,
+    "min_delta": -0.0893849366027375,
+    "n_positive_delta": 64,
+    "n_negative_delta": 39
+  },
+  "rows": [
+    {
+      "layer": "conv_first",
+      "shape": [
+        60,
+        3,
+        3,
+        3
+      ],
+      "frac3": 0.011728395707905293,
+      "gate": true,
+      "psnr": 30.343110106102927,
+      "psnr_delta": 0.01153170836192885
+    },
+    {
+      "layer": "layers.0.residual_group.blocks.0.attn.qkv",
+      "shape": [
+        180,
+        60
+      ],
+      "frac3": 0.01101851835846901,
+      "gate": true,
+      "psnr": 30.330766146412923,
+      "psnr_delta": -0.0008122513280746091
+    },
+    {
+      "layer": "layers.0.residual_group.blocks.0.attn.proj",
+      "shape": [
+        60,
+        60
+      ],
+      "frac3": 0.004166666883975267,
+      "gate": true,
+      "psnr": 30.334016378196793,
+      "psnr_delta": 0.002437980455795241
+    },
+    {
+      "layer": "layers.0.residual_group.blocks.0.mlp.fc1",
+      "shape": [
+        120,
+        60
+      ],
+      "frac3": 0.005972222425043583,
+      "gate": true,
+      "psnr": 30.331948378140265,
+      "psnr_delta": 0.00036998039926672277
+    },
+    {
+      "layer": "layers.0.residual_group.blocks.0.mlp.fc2",
+      "shape": [
+        60,
+        120
+      ],
+      "frac3": 0.010416666977107525,
+      "gate": true,
+      "psnr": 30.325243332280262,
+      "psnr_delta": -0.006335065460735478
+    },
+    {
+      "layer": "layers.0.residual_group.blocks.1.attn.qkv",
+      "shape": [
+        180,
+        60
+      ],
+      "frac3": 0.010740741156041622,
+      "gate": true,
+      "psnr": 30.332744489985924,
+      "psnr_delta": 0.0011660922449259203
+    },
+    {
+      "layer": "layers.0.residual_group.blocks.1.attn.proj",
+      "shape": [
+        60,
+        60
+      ],
+      "frac3": 0.003888888983055949,
+      "gate": true,
+      "psnr": 30.333240701966297,
+      "psnr_delta": 0.001662304225298783
+    },
+    {
+      "layer": "layers.0.residual_group.blocks.1.mlp.fc1",
+      "shape": [
+        120,
+        60
+      ],
+      "frac3": 0.0069444444961845875,
+      "gate": true,
+      "psnr": 30.330918503219987,
+      "psnr_delta": -0.0006598945210107843
+    },
+    {
+      "layer": "layers.0.residual_group.blocks.1.mlp.fc2",
+      "shape": [
+        60,
+        120
+      ],
+      "frac3": 0.010277777910232544,
+      "gate": true,
+      "psnr": 30.334417633613754,
+      "psnr_delta": 0.0028392358727558076
+    },
+    {
+      "layer": "layers.0.residual_group.blocks.2.attn.qkv",
+      "shape": [
+        180,
+        60
+      ],
+      "frac3": 0.008796296082437038,
+      "gate": true,
+      "psnr": 30.331963426364656,
+      "psnr_delta": 0.00038502862365774604
+    },
+    {
+      "layer": "layers.0.residual_group.blocks.2.attn.proj",
+      "shape": [
+        60,
+        60
+      ],
+      "frac3": 0.0013888889225199819,
+      "gate": false,
+      "psnr": 30.331608327448134,
+      "psnr_delta": 2.992970713577847e-05
+    },
+    {
+      "layer": "layers.0.residual_group.blocks.2.mlp.fc1",
+      "shape": [
+        120,
+        60
+      ],
+      "frac3": 0.006111111491918564,
+      "gate": true,
+      "psnr": 30.33205736457926,
+      "psnr_delta": 0.00047896683826209596
+    },
+    {
+      "layer": "layers.0.residual_group.blocks.2.mlp.fc2",
+      "shape": [
+        60,
+        120
+      ],
+      "frac3": 0.007083333563059568,
+      "gate": true,
+      "psnr": 30.33099347721343,
+      "psnr_delta": -0.0005849205275687552
+    },
+    {
+      "layer": "layers.0.residual_group.blocks.3.attn.qkv",
+      "shape": [
+        180,
+        60
+      ],
+      "frac3": 0.006574074272066355,
+      "gate": true,
+      "psnr": 30.331759810563938,
+      "psnr_delta": 0.0001814128229398193
+    },
+    {
+      "layer": "layers.0.residual_group.blocks.3.attn.proj",
+      "shape": [
+        60,
+        60
+      ],
+      "frac3": 0.0027777778450399637,
+      "gate": true,
+      "psnr": 30.331816310753574,
+      "psnr_delta": 0.00023791301257602981
+    },
+    {
+      "layer": "layers.0.residual_group.blocks.3.mlp.fc1",
+      "shape": [
+        120,
+        60
+      ],
+      "frac3": 0.0033333334140479565,
+      "gate": true,
+      "psnr": 30.331772701774998,
+      "psnr_delta": 0.00019430403400022556
+    },
+    {
+      "layer": "layers.0.residual_group.blocks.3.mlp.fc2",
+      "shape": [
+        60,
+        120
+      ],
+      "frac3": 0.004444444552063942,
+      "gate": true,
+      "psnr": 30.331109979778205,
+      "psnr_delta": -0.0004684179627929552
+    },
+    {
+      "layer": "layers.0.residual_group.blocks.4.attn.qkv",
+      "shape": [
+        180,
+        60
+      ],
+      "frac3": 0.006666666828095913,
+      "gate": true,
+      "psnr": 30.33219982120276,
+      "psnr_delta": 0.0006214234617623049
+    },
+    {
+      "layer": "layers.0.residual_group.blocks.4.attn.proj",
+      "shape": [
+        60,
+        60
+      ],
+      "frac3": 0.004166666883975267,
+      "gate": true,
+      "psnr": 30.330390031844285,
+      "psnr_delta": -0.0011883658967128952
+    },
+    {
+      "layer": "layers.0.residual_group.blocks.4.mlp.fc1",
+      "shape": [
+        120,
+        60
+      ],
+      "frac3": 0.003194444580003619,
+      "gate": true,
+      "psnr": 30.33167264819811,
+      "psnr_delta": 9.425045711353164e-05
+    },
+    {
+      "layer": "layers.0.residual_group.blocks.4.mlp.fc2",
+      "shape": [
+        60,
+        120
+      ],
+      "frac3": 0.0027777778450399637,
+      "gate": true,
+      "psnr": 30.3325932943087,
+      "psnr_delta": 0.0010148965677032606
+    },
+    {
+      "layer": "layers.0.residual_group.blocks.5.attn.qkv",
+      "shape": [
+        180,
+        60
+      ],
+      "frac3": 0.005462963134050369,
+      "gate": true,
+      "psnr": 30.33107249086718,
+      "psnr_delta": -0.0005059068738191286
+    },
+    {
+      "layer": "layers.0.residual_group.blocks.5.attn.proj",
+      "shape": [
+        60,
+        60
+      ],
+      "frac3": 0.004166666883975267,
+      "gate": true,
+      "psnr": 30.332091107458233,
+      "psnr_delta": 0.0005127097172348272
+    },
+    {
+      "layer": "layers.0.residual_group.blocks.5.mlp.fc1",
+      "shape": [
+        120,
+        60
+      ],
+      "frac3": 0.0033333334140479565,
+      "gate": true,
+      "psnr": 30.331723134760814,
+      "psnr_delta": 0.00014473701981643217
+    },
+    {
+      "layer": "layers.0.residual_group.blocks.5.mlp.fc2",
+      "shape": [
+        60,
+        120
+      ],
+      "frac3": 0.005138888955116272,
+      "gate": true,
+      "psnr": 30.331946021679897,
+      "psnr_delta": 0.0003676239388994418
+    },
+    {
+      "layer": "layers.0.conv",
+      "shape": [
+        60,
+        60,
+        3,
+        3
+      ],
+      "frac3": 0.013919753022491932,
+      "gate": true,
+      "psnr": 30.32837628245499,
+      "psnr_delta": -0.0032021152860082225
+    },
+    {
+      "layer": "layers.1.residual_group.blocks.0.attn.qkv",
+      "shape": [
+        180,
+        60
+      ],
+      "frac3": 0.007777777966111898,
+      "gate": true,
+      "psnr": 30.331533902539995,
+      "psnr_delta": -4.449520100280324e-05
+    },
+    {
+      "layer": "layers.1.residual_group.blocks.0.attn.proj",
+      "shape": [
+        60,
+        60
+      ],
+      "frac3": 0.0033333334140479565,
+      "gate": true,
+      "psnr": 30.332063760263487,
+      "psnr_delta": 0.00048536252248965184
+    },
+    {
+      "layer": "layers.1.residual_group.blocks.0.mlp.fc1",
+      "shape": [
+        120,
+        60
+      ],
+      "frac3": 0.005972222425043583,
+      "gate": true,
+      "psnr": 30.331604362934705,
+      "psnr_delta": 2.596519370712258e-05
+    },
+    {
+      "layer": "layers.1.residual_group.blocks.0.mlp.fc2",
+      "shape": [
+        60,
+        120
+      ],
+      "frac3": 0.006527777761220932,
+      "gate": true,
+      "psnr": 30.332118526977013,
+      "psnr_delta": 0.0005401292360147636
+    },
+    {
+      "layer": "layers.1.residual_group.blocks.1.attn.qkv",
+      "shape": [
+        180,
+        60
+      ],
+      "frac3": 0.00731481472030282,
+      "gate": true,
+      "psnr": 30.329579005025476,
+      "psnr_delta": -0.0019993927155219637
+    },
+    {
+      "layer": "layers.1.residual_group.blocks.1.attn.proj",
+      "shape": [
+        60,
+        60
+      ],
+      "frac3": 0.006388889160007238,
+      "gate": true,
+      "psnr": 30.331293836356725,
+      "psnr_delta": -0.0002845613842730188
+    },
+    {
+      "layer": "layers.1.residual_group.blocks.1.mlp.fc1",
+      "shape": [
+        120,
+        60
+      ],
+      "frac3": 0.005138888955116272,
+      "gate": true,
+      "psnr": 30.33169734897819,
+      "psnr_delta": 0.00011895123719085632
+    },
+    {
+      "layer": "layers.1.residual_group.blocks.1.mlp.fc2",
+      "shape": [
+        60,
+        120
+      ],
+      "frac3": 0.0055555556900799274,
+      "gate": true,
+      "psnr": 30.331822199482303,
+      "psnr_delta": 0.00024380174130556043
+    },
+    {
+      "layer": "layers.1.residual_group.blocks.2.attn.qkv",
+      "shape": [
+        180,
+        60
+      ],
+      "frac3": 0.004814814776182175,
+      "gate": true,
+      "psnr": 30.33277096000096,
+      "psnr_delta": 0.0011925622599626706
+    },
+    {
+      "layer": "layers.1.residual_group.blocks.2.attn.proj",
+      "shape": [
+        60,
+        60
+      ],
+      "frac3": 0.004444444552063942,
+      "gate": true,
+      "psnr": 30.3317962219577,
+      "psnr_delta": 0.00021782421670124563
+    },
+    {
+      "layer": "layers.1.residual_group.blocks.2.mlp.fc1",
+      "shape": [
+        120,
+        60
+      ],
+      "frac3": 0.003611111082136631,
+      "gate": true,
+      "psnr": 30.331637543390997,
+      "psnr_delta": 5.914564999898175e-05
+    },
+    {
+      "layer": "layers.1.residual_group.blocks.2.mlp.fc2",
+      "shape": [
+        60,
+        120
+      ],
+      "frac3": 0.004861111287027597,
+      "gate": true,
+      "psnr": 30.3321008259601,
+      "psnr_delta": 0.0005224282191029772
+    },
+    {
+      "layer": "layers.1.residual_group.blocks.3.attn.qkv",
+      "shape": [
+        180,
+        60
+      ],
+      "frac3": 0.0045370371080935,
+      "gate": true,
+      "psnr": 30.33281741329093,
+      "psnr_delta": 0.0012390155499311106
+    },
+    {
+      "layer": "layers.1.residual_group.blocks.3.attn.proj",
+      "shape": [
+        60,
+        60
+      ],
+      "frac3": 0.003055555745959282,
+      "gate": true,
+      "psnr": 30.331778453660696,
+      "psnr_delta": 0.00020005591969862735
+    },
+    {
+      "layer": "layers.1.residual_group.blocks.3.mlp.fc1",
+      "shape": [
+        120,
+        60
+      ],
+      "frac3": 0.005138888955116272,
+      "gate": true,
+      "psnr": 30.3320004016796,
+      "psnr_delta": 0.0004220039386026997
+    },
+    {
+      "layer": "layers.1.residual_group.blocks.3.mlp.fc2",
+      "shape": [
+        60,
+        120
+      ],
+      "frac3": 0.004305555485188961,
+      "gate": true,
+      "psnr": 30.331673993151412,
+      "psnr_delta": 9.5595410414262e-05
+    },
+    {
+      "layer": "layers.1.residual_group.blocks.4.attn.qkv",
+      "shape": [
+        180,
+        60
+      ],
+      "frac3": 0.005185185000300407,
+      "gate": true,
+      "psnr": 30.331376143004455,
+      "psnr_delta": -0.00020225473654278403
+    },
+    {
+      "layer": "layers.1.residual_group.blocks.4.attn.proj",
+      "shape": [
+        60,
+        60
+      ],
+      "frac3": 0.004999999888241291,
+      "gate": true,
+      "psnr": 30.33022842460388,
+      "psnr_delta": -0.0013499731371169332
+    },
+    {
+      "layer": "layers.1.residual_group.blocks.4.mlp.fc1",
+      "shape": [
+        120,
+        60
+      ],
+      "frac3": 0.003194444580003619,
+      "gate": true,
+      "psnr": 30.33157723729432,
+      "psnr_delta": -1.160446679193683e-06
+    },
+    {
+      "layer": "layers.1.residual_group.blocks.4.mlp.fc2",
+      "shape": [
+        60,
+        120
+      ],
+      "frac3": 0.0047222222201526165,
+      "gate": true,
+      "psnr": 30.331772304839525,
+      "psnr_delta": 0.0001939070985272906
+    },
+    {
+      "layer": "layers.1.residual_group.blocks.5.attn.qkv",
+      "shape": [
+        180,
+        60
+      ],
+      "frac3": 0.0055555556900799274,
+      "gate": true,
+      "psnr": 30.331695056268483,
+      "psnr_delta": 0.00011665852748521388
+    },
+    {
+      "layer": "layers.1.residual_group.blocks.5.attn.proj",
+      "shape": [
+        60,
+        60
+      ],
+      "frac3": 0.004166666883975267,
+      "gate": true,
+      "psnr": 30.33134006058169,
+      "psnr_delta": -0.00023833715930621224
+    },
+    {
+      "layer": "layers.1.residual_group.blocks.5.mlp.fc1",
+      "shape": [
+        120,
+        60
+      ],
+      "frac3": 0.0023611111100763083,
+      "gate": false,
+      "psnr": 30.331705847210536,
+      "psnr_delta": 0.00012744946953802128
+    },
+    {
+      "layer": "layers.1.residual_group.blocks.5.mlp.fc2",
+      "shape": [
+        60,
+        120
+      ],
+      "frac3": 0.004861111287027597,
+      "gate": true,
+      "psnr": 30.331701702822546,
+      "psnr_delta": 0.00012330508154789754
+    },
+    {
+      "layer": "layers.1.conv",
+      "shape": [
+        60,
+        60,
+        3,
+        3
+      ],
+      "frac3": 0.013888888992369175,
+      "gate": true,
+      "psnr": 30.331158180734707,
+      "psnr_delta": -0.00042021700629035763
+    },
+    {
+      "layer": "layers.2.residual_group.blocks.0.attn.qkv",
+      "shape": [
+        180,
+        60
+      ],
+      "frac3": 0.006481481250375509,
+      "gate": true,
+      "psnr": 30.331568597554444,
+      "psnr_delta": -9.80018655383219e-06
+    },
+    {
+      "layer": "layers.2.residual_group.blocks.0.attn.proj",
+      "shape": [
+        60,
+        60
+      ],
+      "frac3": 0.0033333334140479565,
+      "gate": true,
+      "psnr": 30.331861777135053,
+      "psnr_delta": 0.0002833793940553164
+    },
+    {
+      "layer": "layers.2.residual_group.blocks.0.mlp.fc1",
+      "shape": [
+        120,
+        60
+      ],
+      "frac3": 0.006388889160007238,
+      "gate": true,
+      "psnr": 30.33184097885232,
+      "psnr_delta": 0.0002625811113219356
+    },
+    {
+      "layer": "layers.2.residual_group.blocks.0.mlp.fc2",
+      "shape": [
+        60,
+        120
+      ],
+      "frac3": 0.008750000037252903,
+      "gate": true,
+      "psnr": 30.333494127467382,
+      "psnr_delta": 0.0019157297263845408
+    },
+    {
+      "layer": "layers.2.residual_group.blocks.1.attn.qkv",
+      "shape": [
+        180,
+        60
+      ],
+      "frac3": 0.0047222222201526165,
+      "gate": true,
+      "psnr": 30.331926364568773,
+      "psnr_delta": 0.000347966827774826
+    },
+    {
+      "layer": "layers.2.residual_group.blocks.1.attn.proj",
+      "shape": [
+        60,
+        60
+      ],
+      "frac3": 0.003055555745959282,
+      "gate": true,
+      "psnr": 30.333277415431517,
+      "psnr_delta": 0.0016990176905196108
+    },
+    {
+      "layer": "layers.2.residual_group.blocks.1.mlp.fc1",
+      "shape": [
+        120,
+        60
+      ],
+      "frac3": 0.007083333563059568,
+      "gate": true,
+      "psnr": 30.33163629697208,
+      "psnr_delta": 5.789923108068251e-05
+    },
+    {
+      "layer": "layers.2.residual_group.blocks.1.mlp.fc2",
+      "shape": [
+        60,
+        120
+      ],
+      "frac3": 0.009999999776482582,
+      "gate": true,
+      "psnr": 30.33084787884956,
+      "psnr_delta": -0.0007305188914372707
+    },
+    {
+      "layer": "layers.2.residual_group.blocks.2.attn.qkv",
+      "shape": [
+        180,
+        60
+      ],
+      "frac3": 0.005833333358168602,
+      "gate": true,
+      "psnr": 30.331551186251154,
+      "psnr_delta": -2.7211489843637082e-05
+    },
+    {
+      "layer": "layers.2.residual_group.blocks.2.attn.proj",
+      "shape": [
+        60,
+        60
+      ],
+      "frac3": 0.004444444552063942,
+      "gate": true,
+      "psnr": 30.332259609629,
+      "psnr_delta": 0.0006812118880006324
+    },
+    {
+      "layer": "layers.2.residual_group.blocks.2.mlp.fc1",
+      "shape": [
+        120,
+        60
+      ],
+      "frac3": 0.0062500000931322575,
+      "gate": true,
+      "psnr": 30.33190979315173,
+      "psnr_delta": 0.0003313954107326822
+    },
+    {
+      "layer": "layers.2.residual_group.blocks.2.mlp.fc2",
+      "shape": [
+        60,
+        120
+      ],
+      "frac3": 0.009166667237877846,
+      "gate": true,
+      "psnr": 30.33112894272991,
+      "psnr_delta": -0.00044945501108628605
+    },
+    {
+      "layer": "layers.2.residual_group.blocks.3.attn.qkv",
+      "shape": [
+        180,
+        60
+      ],
+      "frac3": 0.005740740802139044,
+      "gate": true,
+      "psnr": 30.331969817340962,
+      "psnr_delta": 0.0003914195999641379
+    },
+    {
+      "layer": "layers.2.residual_group.blocks.3.attn.proj",
+      "shape": [
+        60,
+        60
+      ],
+      "frac3": 0.004444444552063942,
+      "gate": true,
+      "psnr": 30.332352617647427,
+      "psnr_delta": 0.0007742199064288968
+    },
+    {
+      "layer": "layers.2.residual_group.blocks.3.mlp.fc1",
+      "shape": [
+        120,
+        60
+      ],
+      "frac3": 0.004166666883975267,
+      "gate": true,
+      "psnr": 30.33176598441217,
+      "psnr_delta": 0.00018758667117069194
+    },
+    {
+      "layer": "layers.2.residual_group.blocks.3.mlp.fc2",
+      "shape": [
+        60,
+        120
+      ],
+      "frac3": 0.0062500000931322575,
+      "gate": true,
+      "psnr": 30.331565584286245,
+      "psnr_delta": -1.2813454752347297e-05
+    },
+    {
+      "layer": "layers.2.residual_group.blocks.4.attn.qkv",
+      "shape": [
+        180,
+        60
+      ],
+      "frac3": 0.004907407332211733,
+      "gate": true,
+      "psnr": 30.334493904863354,
+      "psnr_delta": 0.002915507122356331
+    },
+    {
+      "layer": "layers.2.residual_group.blocks.4.attn.proj",
+      "shape": [
+        60,
+        60
+      ],
+      "frac3": 0.004444444552063942,
+      "gate": true,
+      "psnr": 30.331878535940497,
+      "psnr_delta": 0.0003001381994991448
+    },
+    {
+      "layer": "layers.2.residual_group.blocks.4.mlp.fc1",
+      "shape": [
+        120,
+        60
+      ],
+      "frac3": 0.004166666883975267,
+      "gate": true,
+      "psnr": 30.331530197124483,
+      "psnr_delta": -4.820061651500396e-05
+    },
+    {
+      "layer": "layers.2.residual_group.blocks.4.mlp.fc2",
+      "shape": [
+        60,
+        120
+      ],
+      "frac3": 0.007083333563059568,
+      "gate": true,
+      "psnr": 30.33237307548785,
+      "psnr_delta": 0.0007946777468532673
+    },
+    {
+      "layer": "layers.2.residual_group.blocks.5.attn.qkv",
+      "shape": [
+        180,
+        60
+      ],
+      "frac3": 0.005833333358168602,
+      "gate": true,
+      "psnr": 30.332252949033307,
+      "psnr_delta": 0.0006745512923096442
+    },
+    {
+      "layer": "layers.2.residual_group.blocks.5.attn.proj",
+      "shape": [
+        60,
+        60
+      ],
+      "frac3": 0.005833333358168602,
+      "gate": true,
+      "psnr": 30.33394087599034,
+      "psnr_delta": 0.0023624782493421037
+    },
+    {
+      "layer": "layers.2.residual_group.blocks.5.mlp.fc1",
+      "shape": [
+        120,
+        60
+      ],
+      "frac3": 0.003611111082136631,
+      "gate": true,
+      "psnr": 30.331463529180674,
+      "psnr_delta": -0.00011486856032405512
+    },
+    {
+      "layer": "layers.2.residual_group.blocks.5.mlp.fc2",
+      "shape": [
+        60,
+        120
+      ],
+      "frac3": 0.0062500000931322575,
+      "gate": true,
+      "psnr": 30.332147681229735,
+      "psnr_delta": 0.0005692834887369713
+    },
+    {
+      "layer": "layers.2.conv",
+      "shape": [
+        60,
+        60,
+        3,
+        3
+      ],
+      "frac3": 0.013086419552564621,
+      "gate": true,
+      "psnr": 30.322464764397825,
+      "psnr_delta": -0.009113633343172722
+    },
+    {
+      "layer": "layers.3.residual_group.blocks.0.attn.qkv",
+      "shape": [
+        180,
+        60
+      ],
+      "frac3": 0.006759259384125471,
+      "gate": true,
+      "psnr": 30.329499602282823,
+      "psnr_delta": -0.002078795458174909
+    },
+    {
+      "layer": "layers.3.residual_group.blocks.0.attn.proj",
+      "shape": [
+        60,
+        60
+      ],
+      "frac3": 0.006111111491918564,
+      "gate": true,
+      "psnr": 30.331697146589732,
+      "psnr_delta": 0.00011874884873463998
+    },
+    {
+      "layer": "layers.3.residual_group.blocks.0.mlp.fc1",
+      "shape": [
+        120,
+        60
+      ],
+      "frac3": 0.010138888843357563,
+      "gate": true,
+      "psnr": 30.33134948167331,
+      "psnr_delta": -0.00022891606768737915
+    },
+    {
+      "layer": "layers.3.residual_group.blocks.0.mlp.fc2",
+      "shape": [
+        60,
+        120
+      ],
+      "frac3": 0.017916666343808174,
+      "gate": true,
+      "psnr": 30.335003517764058,
+      "psnr_delta": 0.0034251200230599466
+    },
+    {
+      "layer": "layers.3.residual_group.blocks.1.attn.qkv",
+      "shape": [
+        180,
+        60
+      ],
+      "frac3": 0.008333333767950535,
+      "gate": true,
+      "psnr": 30.332012135592066,
+      "psnr_delta": 0.00043373785106837204
+    },
+    {
+      "layer": "layers.3.residual_group.blocks.1.attn.proj",
+      "shape": [
+        60,
+        60
+      ],
+      "frac3": 0.008055555634200573,
+      "gate": true,
+      "psnr": 30.331486351051694,
+      "psnr_delta": -9.204668930351545e-05
+    },
+    {
+      "layer": "layers.3.residual_group.blocks.1.mlp.fc1",
+      "shape": [
+        120,
+        60
+      ],
+      "frac3": 0.008888889104127884,
+      "gate": true,
+      "psnr": 30.331707149858044,
+      "psnr_delta": 0.00012875211704610479
+    },
+    {
+      "layer": "layers.3.residual_group.blocks.1.mlp.fc2",
+      "shape": [
+        60,
+        120
+      ],
+      "frac3": 0.016388889402151108,
+      "gate": true,
+      "psnr": 30.332243627502258,
+      "psnr_delta": 0.0006652297612603775
+    },
+    {
+      "layer": "layers.3.residual_group.blocks.2.attn.qkv",
+      "shape": [
+        180,
+        60
+      ],
+      "frac3": 0.007592592388391495,
+      "gate": true,
+      "psnr": 30.33121197287328,
+      "psnr_delta": -0.0003664248677175408
+    },
+    {
+      "layer": "layers.3.residual_group.blocks.2.attn.proj",
+      "shape": [
+        60,
+        60
+      ],
+      "frac3": 0.004444444552063942,
+      "gate": true,
+      "psnr": 30.331547995253487,
+      "psnr_delta": -3.0402487510627907e-05
+    },
+    {
+      "layer": "layers.3.residual_group.blocks.2.mlp.fc1",
+      "shape": [
+        120,
+        60
+      ],
+      "frac3": 0.011111111380159855,
+      "gate": true,
+      "psnr": 30.33124370870355,
+      "psnr_delta": -0.0003346890374480438
+    },
+    {
+      "layer": "layers.3.residual_group.blocks.2.mlp.fc2",
+      "shape": [
+        60,
+        120
+      ],
+      "frac3": 0.015416666865348816,
+      "gate": true,
+      "psnr": 30.331027490156544,
+      "psnr_delta": -0.0005509075844543077
+    },
+    {
+      "layer": "layers.3.residual_group.blocks.3.attn.qkv",
+      "shape": [
+        180,
+        60
+      ],
+      "frac3": 0.0069444444961845875,
+      "gate": true,
+      "psnr": 30.33162204330311,
+      "psnr_delta": 4.3645562112004654e-05
+    },
+    {
+      "layer": "layers.3.residual_group.blocks.3.attn.proj",
+      "shape": [
+        60,
+        60
+      ],
+      "frac3": 0.003888888983055949,
+      "gate": true,
+      "psnr": 30.33039332843753,
+      "psnr_delta": -0.001185069303467401
+    },
+    {
+      "layer": "layers.3.residual_group.blocks.3.mlp.fc1",
+      "shape": [
+        120,
+        60
+      ],
+      "frac3": 0.007083333563059568,
+      "gate": true,
+      "psnr": 30.33095227975759,
+      "psnr_delta": -0.0006261179834083919
+    },
+    {
+      "layer": "layers.3.residual_group.blocks.3.mlp.fc2",
+      "shape": [
+        60,
+        120
+      ],
+      "frac3": 0.010694445110857487,
+      "gate": true,
+      "psnr": 30.330522914087986,
+      "psnr_delta": -0.0010554836530118905
+    },
+    {
+      "layer": "layers.3.residual_group.blocks.4.attn.qkv",
+      "shape": [
+        180,
+        60
+      ],
+      "frac3": 0.0061111110262572765,
+      "gate": true,
+      "psnr": 30.329565155374013,
+      "psnr_delta": -0.0020132423669849686
+    },
+    {
+      "layer": "layers.3.residual_group.blocks.4.attn.proj",
+      "shape": [
+        60,
+        60
+      ],
+      "frac3": 0.004444444552063942,
+      "gate": true,
+      "psnr": 30.331508046186503,
+      "psnr_delta": -7.035155449486297e-05
+    },
+    {
+      "layer": "layers.3.residual_group.blocks.4.mlp.fc1",
+      "shape": [
+        120,
+        60
+      ],
+      "frac3": 0.008611110970377922,
+      "gate": true,
+      "psnr": 30.332436489089986,
+      "psnr_delta": 0.0008580913489879549
+    },
+    {
+      "layer": "layers.3.residual_group.blocks.4.mlp.fc2",
+      "shape": [
+        60,
+        120
+      ],
+      "frac3": 0.008888889104127884,
+      "gate": true,
+      "psnr": 30.331981241016045,
+      "psnr_delta": 0.00040284327504735984
+    },
+    {
+      "layer": "layers.3.residual_group.blocks.5.attn.qkv",
+      "shape": [
+        180,
+        60
+      ],
+      "frac3": 0.006203703582286835,
+      "gate": true,
+      "psnr": 30.33186405819253,
+      "psnr_delta": 0.0002856604515315553
+    },
+    {
+      "layer": "layers.3.residual_group.blocks.5.attn.proj",
+      "shape": [
+        60,
+        60
+      ],
+      "frac3": 0.007500000298023224,
+      "gate": true,
+      "psnr": 30.33174826455537,
+      "psnr_delta": 0.00016986681437103357
+    },
+    {
+      "layer": "layers.3.residual_group.blocks.5.mlp.fc1",
+      "shape": [
+        120,
+        60
+      ],
+      "frac3": 0.006388889160007238,
+      "gate": true,
+      "psnr": 30.33062419698296,
+      "psnr_delta": -0.0009542007580378709
+    },
+    {
+      "layer": "layers.3.residual_group.blocks.5.mlp.fc2",
+      "shape": [
+        60,
+        120
+      ],
+      "frac3": 0.008888889104127884,
+      "gate": true,
+      "psnr": 30.329761937557873,
+      "psnr_delta": -0.0018164601831252014
+    },
+    {
+      "layer": "layers.3.conv",
+      "shape": [
+        60,
+        60,
+        3,
+        3
+      ],
+      "frac3": 0.014166666194796562,
+      "gate": false,
+      "psnr": 30.394822468489544,
+      "psnr_delta": 0.06324407074854577
+    },
+    {
+      "layer": "conv_after_body",
+      "shape": [
+        60,
+        60,
+        3,
+        3
+      ],
+      "frac3": 0.006882715970277786,
+      "gate": true,
+      "psnr": 30.48719336637462,
+      "psnr_delta": 0.15561496863362123
+    },
+    {
+      "layer": "upsample.0",
+      "shape": [
+        12,
+        60,
+        3,
+        3
+      ],
+      "frac3": 0.013425926677882671,
+      "gate": true,
+      "psnr": 30.24219346113826,
+      "psnr_delta": -0.0893849366027375
+    }
+  ]
+}

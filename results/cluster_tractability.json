@@ -1,0 +1,24 @@
+{
+  "sam-b": {
+    "model": "sam-b",
+    "n_descriptors": 500,
+    "dim": 768,
+    "k": 4,
+    "d_real_mean": 0.48253887229238274,
+    "d_real_median": 0.4823184513966084,
+    "d_perm_mean_over_seeds": 0.6247708427996945,
+    "compactness_ratio": 0.7723472028751179,
+    "compactness_ratio_std": 0.001186858542665877
+  },
+  "llama-8b": {
+    "model": "llama-8b",
+    "n_descriptors": 20,
+    "dim": 4096,
+    "k": 4,
+    "d_real_mean": 0.12549277838162481,
+    "d_real_median": 0.12181660179452847,
+    "d_perm_mean_over_seeds": 0.14983648342810843,
+    "compactness_ratio": 0.8376562749806352,
+    "compactness_ratio_std": 0.010185113676691025
+  }
+}

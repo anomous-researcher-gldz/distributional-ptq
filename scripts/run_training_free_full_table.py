@@ -160,66 +160,69 @@ def _eval_ppl_c4(model, tok, seq_len: int = CALIB_SEQLEN, n_samples: int = PPL_S
 
 
 def _collect_llm_pcsa_state(model, tok) -> dict:
-    """One-pass calibration for PCSA-tf on LLM hidden states.
+    """Per-layer one-pass calibration for PCSA-tf on LLM block inputs.
 
-    Hooks the final hidden state of each forward pass, treats it as
-    a prompt-level descriptor and as the raw activation for max-abs scaling.
-    Returns a PCSA-tf state dict {"anchors": ..., "scales": ...}.
+    For each decoder block i, captures the block's input via a pre-hook and
+    fits an independent PCSA-tf state. Fixes the layer-0-only bug diagnosed
+    in 2026-05-15-pcsa-tf-gate-result.md, where a single set of anchor scales
+    (~0.149) fitted on embed_tokens output was applied to deep-layer Linears
+    whose inputs exceeded the anchor by 5-10x, clipping to +/-0.15.
 
-    TODO: For production, collect per-layer PCSA states (one per Linear block).
-          Currently a single global state derived from the LM embedding output
-          is returned as a stand-in — sufficient to test integration plumbing
-          but not the full per-layer PCSA-tf described in the paper.
+    Returns dict keyed by layer index: state[i] = {"anchors": ..., "scales": ...}.
     """
     import torch
     from flatquant.baselines.pcsa_tf import fit_pcsa_tf
-    print("[driver] collecting LLM PCSA-tf calibration activations ...", flush=True)
+    print("[driver] collecting per-layer LLM PCSA-tf calibration activations ...", flush=True)
     calib = _calib_batch_llm(tok)
-    hidden_states = []
+
+    layers = model.model.layers if hasattr(model, "model") else None
+    if layers is None:
+        raise RuntimeError("PCSA-tf: cannot locate model.model.layers for per-layer fit")
+
+    per_layer_inputs: dict[int, list] = {i: [] for i in range(len(layers))}
     hooks = []
 
-    def _make_hook():
-        def _h(module, inp, out):
-            # out might be a tuple (for transformer blocks); take first element
-            hs = out[0] if isinstance(out, tuple) else out
-            hidden_states.append(hs.detach().float().cpu())
+    def _make_pre_hook(idx):
+        def _h(module, args):
+            x = args[0]
+            per_layer_inputs[idx].append(x.detach().float().cpu())
         return _h
 
-    # Hook on the embedding layer to get token-level descriptors
-    embed_layer = model.model.embed_tokens if hasattr(model, "model") else None
-    if embed_layer is not None:
-        hooks.append(embed_layer.register_forward_hook(_make_hook()))
-
+    for i, blk in enumerate(layers):
+        hooks.append(blk.register_forward_pre_hook(_make_pre_hook(i)))
     with torch.no_grad():
         model(calib)
     for h in hooks:
         h.remove()
 
-    if not hidden_states:
-        # Fallback: no hook fired; return dummy state
-        print("[driver] WARNING: no hidden states captured; PCSA-tf state is dummy", flush=True)
-        dummy = torch.zeros(PCSA_K, 1)
-        return {"anchors": dummy, "scales": torch.ones(PCSA_K)}
+    state: dict[int, dict] = {}
+    for i in range(len(layers)):
+        if not per_layer_inputs[i]:
+            continue
+        hs_i = per_layer_inputs[i][0]
+        descs_i = hs_i.mean(dim=1)
+        state[i] = fit_pcsa_tf(descs_i, hs_i, K=PCSA_K)
 
-    # descs: [N, D] — mean-pool over token dim per prompt
-    hs = hidden_states[0]  # [N, T, D]
-    descs = hs.mean(dim=1)  # [N, D]
-    state = fit_pcsa_tf(descs, hs, K=PCSA_K)
-    print(f"[driver] PCSA-tf fitted: K={PCSA_K} anchors, scales={state['scales']}", flush=True)
+    if state:
+        last = max(state)
+        s0 = state[0]["scales"].tolist()
+        s_last = state[last]["scales"].tolist()
+        print(f"[driver] PCSA-tf fitted per-layer: {len(state)} blocks, "
+              f"scales[0]={s0}, scales[{last}]={s_last}", flush=True)
+    else:
+        print("[driver] WARNING: no per-layer PCSA-tf state captured", flush=True)
     return state
 
 
-def _apply_pcsa_tf_to_llm(model, state: dict):
-    """Wrap LLM forward to apply PCSA-tf activation fake-quantization.
+def _apply_pcsa_tf_to_llm(model, state: dict, use_dbaf: bool = False,
+                          dbaf_alpha: float = 0.75):
+    """Apply per-layer PCSA-tf activation fake-quantization.
 
-    Hooks the input of every Linear layer (excluding lm_head) with a
-    per-prompt activation quantizer. The descriptor is approximated by
-    averaging the current input batch along the token dimension.
-
-    NOTE: This is a one-shot wrapper; the real implementation should route
-    using the same descriptor as used at fit time. This is a plumbing stub
-    for integration testing.
+    Routes each decoder-block Linear (q/k/v_proj, o_proj, gate_proj, up_proj)
+    to the PCSA-tf state of its own layer. If use_dbaf=True, applies DBAF
+    fold/unfold around the per-prompt quant.
     """
+    import re
     import torch
     import torch.nn as nn
     from flatquant.baselines.pcsa_tf import apply_pcsa_tf_to_activation
@@ -227,42 +230,52 @@ def _apply_pcsa_tf_to_llm(model, state: dict):
     def _make_forward_hook(orig_forward, _state):
         def _wrapped(x, *args, **kwargs):
             with torch.no_grad():
-                # desc: [B, D] — mean-pool over sequence
                 if x.dim() == 3:
                     desc = x.mean(dim=1).float()
                 else:
                     desc = x.float()
-                # Move state to correct device on first call
                 if _state["anchors"].device != x.device:
                     _state["anchors"] = _state["anchors"].to(x.device)
                     _state["scales"]  = _state["scales"].to(x.device)
-                x = apply_pcsa_tf_to_activation(x, desc, _state, bits=4)
+                x = apply_pcsa_tf_to_activation(
+                    x, desc, _state, bits=4,
+                    use_dbaf=use_dbaf, dbaf_alpha=dbaf_alpha,
+                )
             return orig_forward(x, *args, **kwargs)
         return _wrapped
 
-    # Only wrap Linears whose input dim matches the descriptor dim.
-    # Anchors were fit on decoder-layer-input hidden states (hidden_size),
-    # so only hidden_size-input Linears (q/k/v_proj, o_proj's input, gate/up_proj)
-    # can use them; intermediate-dim Linears (down_proj input = intermediate_size)
-    # are skipped to avoid shape mismatch.  Production version would maintain
-    # per-Linear states; this scoping matches the fit-time descriptor.
-    anchor_dim = state["anchors"].shape[1]
+    if not state:
+        print("[driver] WARNING: empty PCSA-tf state; skipping wrap", flush=True)
+        return model
+
+    anchor_dim = state[next(iter(state))]["anchors"].shape[1]
+    pat = re.compile(r"model\.layers\.(\d+)\.")
     n_wrapped = 0
     n_skipped = 0
+    n_no_layer = 0
     for name, mod in model.named_modules():
         if not isinstance(mod, nn.Linear) or "lm_head" in name:
             continue
         if mod.in_features != anchor_dim:
             n_skipped += 1
             continue
-        mod.forward = _make_forward_hook(mod.forward, state)
+        m = pat.search(name)
+        if not m:
+            n_no_layer += 1
+            continue
+        layer_idx = int(m.group(1))
+        if layer_idx not in state:
+            continue
+        mod.forward = _make_forward_hook(mod.forward, state[layer_idx])
         n_wrapped += 1
-    print(f"[driver] PCSA-tf activation hooks installed on {n_wrapped} Linear layers "
-          f"(skipped {n_skipped} mismatched-dim Linears)", flush=True)
+    print(f"[driver] PCSA-tf per-layer hooks installed on {n_wrapped} Linears "
+          f"(skipped {n_skipped} dim-mismatch, {n_no_layer} no-layer-match)",
+          flush=True)
     return model
 
 
-def run_llm(target: str, method: str, augments: str, out_path: pathlib.Path):
+def run_llm(target: str, method: str, augments: str, out_path: pathlib.Path,
+            act_bits: int = 16):
     import torch
     use_dbaf, use_pcsa_tf = _aug_flags(augments)
     model, tok = _load_llm(target)
@@ -295,9 +308,16 @@ def run_llm(target: str, method: str, augments: str, out_path: pathlib.Path):
     else:
         raise ValueError(f"Unknown method: {method}")
 
+    # --- Per-token activation quantization (W4A4 mode) ---
+    # SmoothQuant already applies its own _ActDivideWrapper with act quant, so
+    # skip the generic post-hoc wrap for that method to avoid double-wrapping.
+    if act_bits < 16 and method != "smoothquant":
+        from flatquant.baselines.act_quant import apply_w4a4_act_quant
+        model = apply_w4a4_act_quant(model, bits=act_bits, use_dbaf=use_dbaf)
+
     # --- Apply PCSA-tf activation quantizer ---
     if use_pcsa_tf and pcsa_state is not None:
-        model = _apply_pcsa_tf_to_llm(model, pcsa_state)
+        model = _apply_pcsa_tf_to_llm(model, pcsa_state, use_dbaf=use_dbaf)
 
     print("[driver] evaluating WikiText-2 PPL ...", flush=True)
     wt2_ppl = _eval_ppl_wikitext2(model, tok)
@@ -752,9 +772,10 @@ def _default_out(target: str, method: str, augments: str) -> pathlib.Path:
     return base / target / cell_name / "eval.json"
 
 
-def run_cell(target: str, method: str, augments: str, out_path: pathlib.Path):
+def run_cell(target: str, method: str, augments: str, out_path: pathlib.Path,
+             act_bits: int = 16):
     if target in LLM_TARGETS:
-        return run_llm(target, method, augments, out_path)
+        return run_llm(target, method, augments, out_path, act_bits=act_bits)
     elif target in SAM_TARGETS:
         return run_sam(target, method, augments, out_path)
     elif target in SWINIR_TARGETS:
@@ -778,6 +799,9 @@ def main():
                    help="Output eval.json path. Default: /data/outputs/G8-training-free-full/<target>/<method>_<augments>/eval.json")
     p.add_argument("--force",    action="store_true",
                    help="Re-run even if eval.json already exists.")
+    p.add_argument("--act_bits", type=int, default=16,
+                   help="Activation bits for LLM cells. 16 = no act quant (original Phase A). "
+                        "4 = per-token symmetric A4 (W4A4). DBAF augmentation also folds the act.")
     args = p.parse_args()
 
     out_path = pathlib.Path(args.out) if args.out else _default_out(args.target, args.method, args.augments)
@@ -788,9 +812,9 @@ def main():
         print(json.dumps(existing, indent=2))
         return
 
-    print(f"[driver] target={args.target}  method={args.method}  augments={args.augments}", flush=True)
+    print(f"[driver] target={args.target}  method={args.method}  augments={args.augments}  act_bits={args.act_bits}", flush=True)
     print(f"[driver] output -> {out_path}", flush=True)
-    run_cell(args.target, args.method, args.augments, out_path)
+    run_cell(args.target, args.method, args.augments, out_path, act_bits=args.act_bits)
 
 
 if __name__ == "__main__":

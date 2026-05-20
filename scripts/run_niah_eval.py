@@ -118,22 +118,31 @@ def main():
     a.no_dbaf_gate = False
     a.separate_vtrans = False
 
-    from transformers import AutoModelForCausalLM, AutoTokenizer
+    import transformers
+    from transformers import AutoTokenizer
     print("[load] tokenizer + model", flush=True)
     tok = AutoTokenizer.from_pretrained(args.model)
-    model = AutoModelForCausalLM.from_pretrained(args.model, torch_dtype=torch.float16,
-                                                 device_map="cuda", low_cpu_mem_usage=True)
+    cfg = transformers.LlamaConfig.from_pretrained(args.model)
+    cfg._attn_implementation_internal = "eager"
+    model = transformers.LlamaForCausalLM.from_pretrained(
+        args.model, config=cfg, torch_dtype="auto", low_cpu_mem_usage=True,
+    )
+    model.seqlen = args.max_seq_length
+
     from flatquant.model_tools.llama_utils import apply_flatquant_to_llama
     apply_flatquant_to_llama(a, model)
-    matrices = torch.load(f"{args.matrix_path}/flat_matrices.pth", map_location="cuda", weights_only=False)
-    params = torch.load(f"{args.matrix_path}/flat_parameters.pth", map_location="cuda", weights_only=False)
-    model.load_state_dict(matrices, strict=False)
-    model.load_state_dict(params, strict=False)
-    pcsa_path = pathlib.Path(f"{args.matrix_path}/pcsa_state.pth")
-    if pcsa_path.exists():
-        pcsa = torch.load(str(pcsa_path), map_location="cuda", weights_only=False)
-        model.load_state_dict(pcsa, strict=False)
-        print(f"[load] PCSA state loaded ({len(pcsa)} tensors)", flush=True)
+    from flatquant import flat_utils
+    a.exp_dir = args.matrix_path
+    flat_utils.load_flat_matrices(a, model, path=args.matrix_path)
+    model.to("cuda")
+    flat_utils.reparameterize_model(model)
+
+    # Apply RTN W4 weight quantization (mirrors main.py post-reparameterize step)
+    import gptq_utils
+    a.gptq = False; a.w_clip = True; a.act_order = False; a.percdamp = 0.01
+    a.nsamples = 128; a.gptq_mse = False; a.int8_down_proj = False
+    gptq_utils.rtn_fwrd(model, "cuda", a)
+    model.to("cuda")
     for m in model.modules():
         if hasattr(m, "_eval_mode"):
             m._eval_mode = True

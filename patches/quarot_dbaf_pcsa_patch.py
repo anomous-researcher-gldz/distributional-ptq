@@ -91,28 +91,32 @@ def install_dbaf_patches(dbaf_alpha: float = 0.95):
         if self.bits == 16:
             return orig_act_forward(self, x)
         try:
-            fires = bool(is_like_normal_plus_3sigma_outliers(x.detach()))
+            stats = is_like_normal_plus_3sigma_outliers(x.detach())
+            fires = bool(stats.get("is_like_c", False))
         except Exception:
             fires = False
         if not fires:
             return orig_act_forward(self, x)
-        folded, meta = fold_outliers(x, alpha=_DBAF_ALPHA)
+        T = float(3.0 * stats["stats"]["std"])
+        folded, tag = fold_outliers(x, T, _DBAF_ALPHA)
         q_folded = orig_act_forward(self, folded)
-        return unfold_outliers(q_folded, meta)
+        return unfold_outliers(q_folded, tag, T, _DBAF_ALPHA)
 
     qu.ActQuantizer.forward = wrapped_act_forward
 
     if orig_w_forward is not None:
         def wrapped_w_forward(self, x):
             try:
-                fires = bool(is_like_normal_plus_3sigma_outliers(x.detach()))
+                stats = is_like_normal_plus_3sigma_outliers(x.detach())
+                fires = bool(stats.get("is_like_c", False))
             except Exception:
                 fires = False
             if not fires:
                 return orig_w_forward(self, x)
-            folded, meta = fold_outliers(x, alpha=_DBAF_ALPHA)
+            T = float(3.0 * stats["stats"]["std"])
+            folded, tag = fold_outliers(x, T, _DBAF_ALPHA)
             q_folded = orig_w_forward(self, folded)
-            return unfold_outliers(q_folded, meta)
+            return unfold_outliers(q_folded, tag, T, _DBAF_ALPHA)
         qu.WeightQuantizer.forward = wrapped_w_forward
 
     _DBAF_INSTALLED = True

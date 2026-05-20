@@ -1,0 +1,21 @@
+{
+  "config": "LLaMA-3-8B FlatQuant W4A4 KV4, RTN base",
+  "n_eval": 200,
+  "n_pairs_4k": 256,
+  "n_pairs_8k": 512,
+  "max_seq_length": 9000,
+  "baseline": {
+    "4096": 0.990,
+    "8192": 0.945
+  },
+  "kv_pcsa_v2": {
+    "4096": 0.995,
+    "8192": 0.995
+  },
+  "delta": {
+    "4096": 0.005,
+    "8192": 0.050
+  },
+  "wikitext2_ppl_shift": 0.011,
+  "notes": "Audit-trail file for §4.4 KV-PCSA NIAH claim. n=200 confirms +5pp at 8k (vs n=20 earlier estimate 0.95→1.00). KV-PCSA preserves 8k retrieval while baseline drops 4.5pp at extended context."
+}

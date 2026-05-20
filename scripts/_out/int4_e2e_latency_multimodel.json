@@ -1,0 +1,24 @@
+{
+  "results": [
+    {
+      "model": "sam-b",
+      "d": 768,
+      "n_layers": 12,
+      "int4_config": null,
+      "fp16_baseline_ms": 65.4545269984131,
+      "fp16_dbaf_ms": 106.08115633173536,
+      "int4_error": "rowwise_scaled_linear_cutlass : Expected xq scale argument size at position 1 to be 7, but got 14"
+    }
+  ],
+  "config": {
+    "models": [
+      "sam-b"
+    ],
+    "alpha": 0.25,
+    "T_sigma": 3.0,
+    "n_warmup": 2,
+    "n_iters": 3,
+    "llm_seq_len": 4096,
+    "out": "/home/ubuntu/unifying-ptq/scripts/_out/int4_e2e_latency_multimodel.json"
+  }
+}

@@ -14,6 +14,15 @@ set -uo pipefail
 
 cd /home/ubuntu/unifying-ptq
 source "$HOME/miniconda3/etc/profile.d/conda.sh" && conda activate tesseraq
+: "${PYTHONPATH:=}"
+
+# TesseraQ uses torch.distributed; provide rendezvous env so init_process_group
+# works under a plain `python` invocation (no torchrun).
+export RANK="${RANK:-0}"
+export LOCAL_RANK="${LOCAL_RANK:-0}"
+export WORLD_SIZE="${WORLD_SIZE:-1}"
+export MASTER_ADDR="${MASTER_ADDR:-127.0.0.1}"
+export MASTER_PORT="${MASTER_PORT:-29501}"
 
 OUT_ROOT="${OUT_ROOT:-/data/outputs/HM-tesseraq}"
 MODEL_PATH="${MODEL_PATH:-/data/modelzoo/meta-llama/Meta-Llama-3-8B}"

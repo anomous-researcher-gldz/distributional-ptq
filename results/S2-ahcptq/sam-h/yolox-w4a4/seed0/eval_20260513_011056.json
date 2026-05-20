@@ -1,0 +1,1 @@
+{"config": "./projects/configs/yolox/yolo_l-sam-vit-h.py", "metric": {"segm_mAP": 0.353, "segm_mAP_50": 0.582, "segm_mAP_75": 0.37, "segm_mAP_s": 0.194, "segm_mAP_m": 0.396, "segm_mAP_l": 0.496, "segm_mAP_copypaste": "0.353 0.582 0.370 0.194 0.396 0.496"}}

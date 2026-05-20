@@ -66,6 +66,13 @@ def _parse_args(argv=None):
     p.add_argument("--a_bits", type=int, default=4, help="Activation quantisation bits.")
     p.add_argument("--nsamples", type=int, default=128, help="GPTQ calibration samples.")
     p.add_argument("--bsz", type=int, default=32, help="Eval batch size.")
+    p.add_argument("--eval_dataset", default="wikitext2",
+                   choices=["wikitext2", "c4"],
+                   help="Eval dataset (default: wikitext2).")
+    p.add_argument("--merge_existing", action="store_true",
+                   help="If --out already exists, merge new metric into it "
+                        "instead of skipping. Used to backfill c4 onto an "
+                        "existing wikitext2-only eval.json.")
     p.add_argument("--dry_run", action="store_true",
                    help="Print the command that would be run and exit.")
     return p.parse_args(argv)
@@ -75,17 +82,15 @@ def _parse_args(argv=None):
 # PPL parsing
 # ---------------------------------------------------------------------------
 
-def _parse_ppl(output: str) -> float | None:
-    """Extract the WikiText-2 PPL from QuaRot's logging output.
+def _parse_ppl(output: str, dataset: str = "wikitext2") -> float | None:
+    """Extract the PPL for the given dataset from QuaRot's logging output.
 
-    QuaRot's eval_utils.evaluator() logs:
-        WIKITEXT2 PPL: 7.342
+    QuaRot's eval_utils.evaluator() logs e.g. `WIKITEXT2 PPL: 7.342` or `C4 PPL: 9.811`.
     """
-    # Primary pattern — eval_utils logging.info line
-    m = re.search(r"WIKITEXT2\s+PPL:\s*([\d.]+)", output, re.IGNORECASE)
+    pat = rf"{re.escape(dataset.upper())}\s+PPL:\s*([\d.]+)"
+    m = re.search(pat, output, re.IGNORECASE)
     if m:
         return float(m.group(1))
-    # Fallback: plain float at end of a line containing "PPL"
     m = re.search(r"PPL[^:\n]*:\s*([\d.]+)", output, re.IGNORECASE)
     if m:
         return float(m.group(1))
@@ -108,10 +113,14 @@ def run_cell(args) -> dict:
         out_path = pathlib.Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Skip if already done
-    if out_path.exists():
-        print(f"[quarot_cell] skipping {augment} — {out_path} already exists", flush=True)
-        return json.loads(out_path.read_text())
+    # Skip if already done (unless we're backfilling another metric)
+    metric_key = f"{args.eval_dataset}_ppl"
+    if out_path.exists() and not args.merge_existing:
+        existing = json.loads(out_path.read_text())
+        if existing.get("metrics", {}).get(metric_key) is not None:
+            print(f"[quarot_cell] skipping {augment} — {metric_key} already in {out_path}",
+                  flush=True)
+            return existing
 
     # Build QuaRot CLI
     cmd = [
@@ -125,7 +134,7 @@ def run_cell(args) -> dict:
         "--w_clip",
         "--cal_dataset", "wikitext2",
         "--nsamples", str(args.nsamples),
-        "--eval_dataset", "wikitext2",
+        "--eval_dataset", args.eval_dataset,
         "--bsz", str(args.bsz),
     ]
 
@@ -170,19 +179,24 @@ def run_cell(args) -> dict:
             f"QuaRot exited with code {proc.returncode} for augment={augment}"
         )
 
-    ppl = _parse_ppl(combined_output)
+    ppl = _parse_ppl(combined_output, args.eval_dataset)
     if ppl is None:
-        print("[quarot_cell] WARNING: could not parse PPL from output; storing nan",
+        print(f"[quarot_cell] WARNING: could not parse {args.eval_dataset} PPL; storing nan",
               flush=True)
         ppl = float("nan")
 
-    record = {
-        "target": "llama3-8b",
-        "method": "quarot",
-        "augments": augment,
-        "metrics": {"wikitext2_ppl": ppl},
-        "wallclock_seconds": elapsed,
-    }
+    if args.merge_existing and out_path.exists():
+        record = json.loads(out_path.read_text())
+        record.setdefault("metrics", {})[metric_key] = ppl
+        record["wallclock_seconds"] = elapsed
+    else:
+        record = {
+            "target": "llama3-8b",
+            "method": "quarot",
+            "augments": augment,
+            "metrics": {metric_key: ppl},
+            "wallclock_seconds": elapsed,
+        }
     out_path.write_text(json.dumps(record, indent=2))
     print(f"[quarot_cell] eval.json written to {out_path}", flush=True)
     print(json.dumps(record, indent=2))

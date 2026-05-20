@@ -1,0 +1,1 @@
+{"config": "./projects/configs/hdetr/r50-hdetr_sam-vit-h.py", "metric": {"segm_mAP": 0.354, "segm_mAP_50": 0.596, "segm_mAP_75": 0.371, "segm_mAP_s": 0.195, "segm_mAP_m": 0.401, "segm_mAP_l": 0.513, "segm_mAP_copypaste": "0.354 0.596 0.371 0.195 0.401 0.513"}}

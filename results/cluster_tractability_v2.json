@@ -1,0 +1,58 @@
+{
+  "sam-b": {
+    "model": "sam-b",
+    "n_descriptors": 100,
+    "dim": 256,
+    "k_sweep": {
+      "2": {
+        "d_real_mean": 0.1372992721833356,
+        "ratio_vs_permute_dims": 0.22827436650499494,
+        "ratio_vs_permute_dims_std": 0.006826797114710458,
+        "ratio_vs_gaussian": 0.22087618533268585,
+        "ratio_vs_gaussian_std": 0.005714308194059639
+      },
+      "4": {
+        "d_real_mean": 0.09672374972732982,
+        "ratio_vs_permute_dims": 0.18887353369710008,
+        "ratio_vs_permute_dims_std": 0.0034490936436459884,
+        "ratio_vs_gaussian": 0.17067645878880802,
+        "ratio_vs_gaussian_std": 0.004484648065590621
+      },
+      "8": {
+        "d_real_mean": 0.0708710079365353,
+        "ratio_vs_permute_dims": 0.15933654721002977,
+        "ratio_vs_permute_dims_std": 0.002454011959344249,
+        "ratio_vs_gaussian": 0.13795615504986874,
+        "ratio_vs_gaussian_std": 0.0032553884938793924
+      }
+    }
+  },
+  "llama-8b": {
+    "model": "llama-8b",
+    "n_descriptors": 1600,
+    "dim": 4096,
+    "k_sweep": {
+      "2": {
+        "d_real_mean": 0.6940273509533327,
+        "ratio_vs_permute_dims": 0.932560152466803,
+        "ratio_vs_permute_dims_std": 0.000650769614577217,
+        "ratio_vs_gaussian": 0.9321073246450077,
+        "ratio_vs_gaussian_std": 0.0009415162681129941
+      },
+      "4": {
+        "d_real_mean": 0.6363903232016187,
+        "ratio_vs_permute_dims": 0.8655092682704296,
+        "ratio_vs_permute_dims_std": 0.0016760319864481802,
+        "ratio_vs_gaussian": 0.8602754625773873,
+        "ratio_vs_gaussian_std": 0.0008254403106962733
+      },
+      "8": {
+        "d_real_mean": 0.5739877812523965,
+        "ratio_vs_permute_dims": 0.7901516436370385,
+        "ratio_vs_permute_dims_std": 0.0009705366437205208,
+        "ratio_vs_gaussian": 0.7810511794004458,
+        "ratio_vs_gaussian_std": 0.0006799729714117231
+      }
+    }
+  }
+}

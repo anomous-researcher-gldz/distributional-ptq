@@ -1,0 +1,32 @@
+{
+  "S": 8.0,
+  "settings": [
+    {
+      "setting": "A_clusters_correlated",
+      "K_calib": 4,
+      "K_true": 4,
+      "compactness": 0.23259744114208103,
+      "mse_global": 0.013553902801249565,
+      "mse_anchor": 0.011908132105317923,
+      "pcsa_gain_pct": 12.14241182089571
+    },
+    {
+      "setting": "B_clusters_decorrelated",
+      "K_calib": 4,
+      "K_true": 4,
+      "compactness": 0.23205960152623728,
+      "mse_global": 0.014962064428359267,
+      "mse_anchor": 0.012354470884514237,
+      "pcsa_gain_pct": 17.428033118896128
+    },
+    {
+      "setting": "C_K_mismatch",
+      "K_calib": 4,
+      "K_true": 8,
+      "compactness": 0.6926269540694122,
+      "mse_global": 0.012469924230078613,
+      "mse_anchor": 0.01193938202094716,
+      "pcsa_gain_pct": 4.2545744412122
+    }
+  ]
+}

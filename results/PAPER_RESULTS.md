@@ -517,3 +517,58 @@ Two findings for §4.X cost subsection:
 
 Generator: `scripts/run_long_context_sweep.sh` + `scripts/_out/long_context/`.
 
+---
+
+## Host-Matrix W4A4 on Llama-3-8B (EMNLP 2026)
+
+2×2 host matrix: (rotation × training-status) × {alone, +DBAF}. Phase A is
+the apples-to-apples training-free redo (`HM-phase-a-w4a4/`), Phase B is the
+rotation row (`HM-quarot/`), Phase C is the training row (`HM-tesseraq/`).
+SmoothQuant row is reused from the G8 sweep (`G8-training-free-full/`).
+Δ = (alone − dbaf) / alone × 100; for rows in the saturated regime
+(alone PPL < 20) Δ is reported to 2 sig figs.
+
+| Method | Rotation | Trained | Alone wt2 | +DBAF wt2 | Δ wt2 | Alone c4 | +DBAF c4 | Δ c4 |
+|---|---|---|---|---|---|---|---|---|
+| RTN | ✗ | ✗ | 969.99 | 250.60 | −74% | 775.23 | 310.08 | −60% |
+| GPTQ | ✗ | ✗ | 1566.59 | 348.66 | −78% | 1436.94 | 363.25 | −75% |
+| AWQ | ✗ | ✗ | 3502.63 | 579.96 | −83% | 2993.16 | 520.03 | −83% |
+| SmoothQuant | ✗ | ✗ | 9844.14 | 5263.70 | −47% | 6794.43 | 3251.95 | −52% |
+| QuaRot | ✓ | ✗ | 8.41 | 8.40 | −0.17% | — | — | — |
+| TesseraQ | ✗ | ✓ | 61.84 | (running) | — | 52.84 | (running) | — |
+| FlatQuant | ✓ | ✓ | (saturated, see C1) | (saturated) | — | — | — | — |
+
+Sources:
+- `/data/outputs/HM-phase-a-w4a4/llama3-8b/{rtn,gptq,awq}_{alone,dbaf}/eval.json`
+- `/data/outputs/G8-training-free-full/llama3-8b/smoothquant_{alone,dbaf}/eval.json`
+- `/data/outputs/HM-quarot/llama3-8b/quarot_{alone,dbaf}/eval.json`
+- `/data/outputs/HM-tesseraq/llama3-8b/tesseraq_{alone,dbaf}/eval.json` (dbaf landing ~03:00)
+
+**Interpretation.** The rotation cliff drops PPL by 2–3 orders of magnitude
+(thousands → single digits), confirming that incoherence processing is the
+single most important pre-quantization transform at W4A4. DBAF lifts are
+large in the un-rotated regime (−47% to −83% wt2 across four hosts) and
+collapse to near-zero noise (−0.17%) once rotation has already absorbed the
+outlier mass it targets. TesseraQ's training-without-rotation lands at
+~62 wt2 PPL, sitting between rotation methods (~8) and untrained
+no-rotation methods (970–9844), consistent with the view that rotation and
+training attack the same underlying outlier problem from different angles.
+
+Re-aggregate with `scripts/aggregate_host_matrix.py` (stdlib only, idempotent,
+prints `(running)` / `(missing)` for cells whose eval.json has not landed).
+
+## SAM-H Cross-Detector W4A4 (EMNLP 2026 §5)
+
+| Detector | segm_mAP | mAP_50 | mAP_75 |
+|---|---|---|---|
+| YOLOX | 0.353 | 0.582 | 0.370 |
+| H-DETR | 0.354 | 0.596 | 0.371 |
+
+Sources:
+- `results/S2-ahcptq/sam-h/yolox-w4a4/seed0/eval_20260513_011056.json`
+- `results/G9-ahcptq-cross-detector/sam-h/h-detr-w4a4/eval_20260514_170400.json`
+
+**Interpretation.** SAM-H is detector-agnostic to within 0.001 segm_mAP at
+W4A4, supporting the §5 claim that the encoder-side distributional fix is
+independent of the downstream detector head.
+

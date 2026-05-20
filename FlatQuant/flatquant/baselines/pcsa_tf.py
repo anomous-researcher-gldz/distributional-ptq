@@ -58,21 +58,30 @@ def fit_pcsa_tf(
     """
     descs = descs.detach().float()
     acts = acts.detach().float()
+    # Robust per-prompt scale: 99th percentile of |acts|, not max.
+    # Max-abs is dominated by outliers in LLM deep-layer residual streams
+    # (e.g., scales[31]~290 with median ~1.0); using it as the quant range
+    # forces step = 290/7 = 41, which zeroes most token values.
     if acts.dim() == 3:
-        per_prompt_max = acts.abs().amax(dim=(1, 2))  # [N]
+        flat = acts.abs().reshape(acts.shape[0], -1)  # [N, T*D]
     elif acts.dim() == 2:
-        per_prompt_max = acts.abs().amax(dim=1)  # [N]
+        flat = acts.abs()  # [N, D]
     else:
         raise ValueError(f"acts must be [N,T,D] or [N,D], got {acts.shape}")
+    # torch.quantile() crashes when a row exceeds ~16M elements (LLaMA-3-8B
+    # down_proj at seq_len=2048: 29M). Use kthvalue, which handles arbitrary
+    # row sizes, to get the 99th-percentile per row.
+    M = flat.shape[1]
+    k99 = max(1, int(0.99 * M))
+    per_prompt_scale = flat.kthvalue(k99, dim=1).values  # [N]
     anchors = _kmeans(descs, K)
     K_actual = anchors.shape[0]  # may be < K if N < K (clamped in _kmeans)
-    # route each prompt to its nearest anchor and take max-abs activation
     sims = F.normalize(descs, dim=-1) @ F.normalize(anchors, dim=-1).T
     assign = sims.argmax(dim=-1)  # [N]
     scales = torch.zeros(K_actual)
     for j in range(K_actual):
         mask = (assign == j)
-        scales[j] = per_prompt_max[mask].max() if mask.any() else per_prompt_max.max()
+        scales[j] = per_prompt_scale[mask].max() if mask.any() else per_prompt_scale.max()
     return {"anchors": anchors, "scales": scales}
 
 
@@ -83,28 +92,80 @@ def route_pcsa_tf(desc: torch.Tensor, state: dict) -> torch.Tensor:
     return sims.argmax(dim=-1)
 
 
+def apply_pcsa_tf_to_activation_ste(
+    x: torch.Tensor,
+    desc: torch.Tensor,
+    anchors: torch.Tensor,
+    scales: torch.Tensor,
+    bits: int = 4,
+) -> torch.Tensor:
+    """Differentiable variant of apply_pcsa_tf_to_activation for TesseraQ block-recon.
+
+    Identical semantics to apply_pcsa_tf_to_activation but `scales` is a trainable
+    nn.Parameter and `anchors` is a frozen buffer. Uses straight-through round so
+    gradients flow back into `scales`. The clamp + round combination supplies
+    gradient through clipped values: for |x/s| > qmax, dy/ds = +/-qmax, which
+    correctly pushes `scales` up when an outlier needs to be preserved.
+
+    Matches TesseraQ's STE: round_func(x) = (x.round() - x).detach() + x
+    (see TesseraQ/llmc/compression/quantization/quant.py:23).
+    """
+    qmax = 2 ** (bits - 1) - 1
+    # Routing (no grad needed — anchor selection is discrete)
+    with torch.no_grad():
+        ids = (F.normalize(desc, dim=-1) @ F.normalize(anchors, dim=-1).T).argmax(dim=-1)
+    scale_per_prompt = scales[ids].clamp(min=1e-9)
+    extra_dims = x.dim() - 1
+    s = (scale_per_prompt / qmax).view(-1, *([1] * extra_dims))
+    y = x / s
+    q = (y.round() - y).detach() + y  # STE
+    q = q.clamp(-qmax, qmax)
+    return q * s
+
+
 @torch.no_grad()
 def apply_pcsa_tf_to_activation(
     x: torch.Tensor,
     desc: torch.Tensor,
     state: dict,
     bits: int = 4,
+    use_dbaf: bool = False,
+    dbaf_alpha: float = 0.75,
+    dbaf_T_sigma: float = 3.0,
 ) -> torch.Tensor:
     """Per-prompt symmetric INT[bits] fake-quantization using anchor-routed scale.
 
     Symmetric int{bits}: integer codes span [-(2^(bits-1)-1), +(2^(bits-1)-1)],
-    so step = S / (2^(bits-1) - 1). For bits=4 the step is S/7 (NOT S/15);
-    using the wrong qmax compresses dequant values to ~0.47*S per Linear and
-    propagates destructively through deep transformers.
+    so step = S / (2^(bits-1) - 1). For bits=4 the step is S/7 (NOT S/15).
 
-    x: [B, ...] activation tensor; desc: [B, D] prompt descriptors.
-    Returns: same shape as x, fake-quantized.
+    If use_dbaf=True, applies dual-band affine fold along the per-token dim
+    BEFORE the per-prompt quant, then unfolds AFTER. The fold formula:
+        folded = sgn(x)*T + alpha*(x - sgn(x)*T)   for |x| > T
+        folded = x                                  otherwise
+    with T = dbaf_T_sigma * per-token std. This compresses outliers without
+    disturbing bulk values; on outlier-heavy LLM residual streams it lets
+    PCSA-tf scale on a dense post-fold distribution rather than fighting
+    the bulk/outlier 100x+ ratio.
     """
-    qmax = 2 ** (bits - 1) - 1  # symmetric int{bits}: 7 for bits=4
-    anchor_ids = route_pcsa_tf(desc, state)  # [B]
-    scale_per_prompt = state["scales"][anchor_ids]  # [B]
-    extra_dims = x.dim() - 1
+    qmax = 2 ** (bits - 1) - 1
+    if use_dbaf:
+        sigma = x.std(dim=-1, keepdim=True).clamp(min=1e-9)
+        T = dbaf_T_sigma * sigma
+        sgn = torch.sign(x)
+        mask = x.abs() > T
+        x_in = torch.where(mask, sgn * T + dbaf_alpha * (x - sgn * T), x)
+    else:
+        x_in = x
+        T = None
+        sgn = None
+        mask = None
+    anchor_ids = route_pcsa_tf(desc, state)
+    scale_per_prompt = state["scales"][anchor_ids]
+    extra_dims = x_in.dim() - 1
     scale = scale_per_prompt.view(-1, *([1] * extra_dims)) / qmax
     scale = scale.clamp(min=1e-9)
-    q = torch.round(x / scale).clamp(-qmax, qmax)
-    return (q * scale).to(x.dtype)
+    q = torch.round(x_in / scale).clamp(-qmax, qmax)
+    x_q = (q * scale).to(x.dtype)
+    if use_dbaf:
+        x_q = torch.where(mask, sgn * T + (1.0 / dbaf_alpha) * (x_q - sgn * T), x_q)
+    return x_q

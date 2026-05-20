@@ -1,0 +1,82 @@
+{
+  "K_true": 4,
+  "D": 256,
+  "N": 1000,
+  "B": 64,
+  "separations": [
+    0.0,
+    0.5,
+    1.0,
+    2.0,
+    4.0,
+    8.0,
+    16.0,
+    32.0
+  ],
+  "rows": [
+    {
+      "separation_S": 0.0,
+      "compactness_ratio": 1.0008389034275882,
+      "compactness_std": 0.00017849610137282793,
+      "mse_global": 0.0,
+      "mse_anchor": 0.0,
+      "pcsa_gain_pct": 0.0
+    },
+    {
+      "separation_S": 0.5,
+      "compactness_ratio": 0.9720496603528115,
+      "compactness_std": 0.0003525142494874448,
+      "mse_global": 4.734945536264629e-05,
+      "mse_anchor": 4.403748926268567e-05,
+      "pcsa_gain_pct": 6.994729030343632
+    },
+    {
+      "separation_S": 1.0,
+      "compactness_ratio": 0.888450337867817,
+      "compactness_std": 0.0002659260659698344,
+      "mse_global": 0.0002108968914766724,
+      "mse_anchor": 0.00019172018354941383,
+      "pcsa_gain_pct": 9.09293057521416
+    },
+    {
+      "separation_S": 2.0,
+      "compactness_ratio": 0.6798701975294712,
+      "compactness_std": 0.0002989204417214113,
+      "mse_global": 0.0008062236071273961,
+      "mse_anchor": 0.0007192149742063954,
+      "pcsa_gain_pct": 10.792121708146905
+    },
+    {
+      "separation_S": 4.0,
+      "compactness_ratio": 0.4193034142644977,
+      "compactness_std": 0.0004828669315143216,
+      "mse_global": 0.00316926001697142,
+      "mse_anchor": 0.002927451993539317,
+      "pcsa_gain_pct": 7.629794404284238
+    },
+    {
+      "separation_S": 8.0,
+      "compactness_ratio": 0.22332055838774661,
+      "compactness_std": 0.00012216156936524963,
+      "mse_global": 0.014676042231948187,
+      "mse_anchor": 0.013041431866935066,
+      "pcsa_gain_pct": 11.137950812479586
+    },
+    {
+      "separation_S": 16.0,
+      "compactness_ratio": 0.1189456997643947,
+      "compactness_std": 9.207624284622657e-05,
+      "mse_global": 0.055627139161442164,
+      "mse_anchor": 0.049216049715711925,
+      "pcsa_gain_pct": 11.525110840454785
+    },
+    {
+      "separation_S": 32.0,
+      "compactness_ratio": 0.05706727898189686,
+      "compactness_std": 5.0057919522434505e-05,
+      "mse_global": 0.21695688395397938,
+      "mse_anchor": 0.1976744904700309,
+      "pcsa_gain_pct": 8.887661517132884
+    }
+  ]
+}

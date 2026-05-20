@@ -1,0 +1,8 @@
+{
+  "model": "llama3-8b",
+  "baseline": "gptq",
+  "use_dbaf": false,
+  "bits": 4,
+  "wikitext2_ppl": 11.604498863220215,
+  "quant_seconds": 625.679078578949
+}

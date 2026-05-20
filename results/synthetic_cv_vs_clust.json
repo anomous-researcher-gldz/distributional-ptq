@@ -1,0 +1,12 @@
+{
+  "A_4mode_mixture": {
+    "cv_mean": 12.545023343419949,
+    "compactness_k4": 0.8890276962941256,
+    "compactness_k4_std": 0.0002442351183819065
+  },
+  "B_isotropic": {
+    "cv_mean": 91.28238186800033,
+    "compactness_k4": 1.0004612630343312,
+    "compactness_k4_std": 0.00036724020526558314
+  }
+}
