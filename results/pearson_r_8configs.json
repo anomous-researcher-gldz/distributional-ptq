@@ -1,0 +1,23 @@
+{
+  "description": "Per-layer Pearson r between weight outlier fraction (frac>3sigma) and forced-DBAF MSE reduction, across all 8 model configurations. Source: results/S4-cross-model-layer-analysis/*.json with fields w_frac3 and w_gain_force_pct. Computed 2026-05-20.",
+  "field_x": "w_frac3",
+  "field_y": "w_gain_force_pct",
+  "configs": [
+    {"model": "llama-3-8b", "n": 224, "r": 0.4847, "p": "<1e-14"},
+    {"model": "qwen-2.5-7b", "n": 196, "r": 0.5108, "p": "<1e-14"},
+    {"model": "sam-b", "n": 51, "r": 0.5952, "p": "<1e-5"},
+    {"model": "sam-l", "n": 99, "r": 0.6501, "p": "<1e-12"},
+    {"model": "sam-h", "n": 131, "r": 0.6066, "p": "<1e-13"},
+    {"model": "swinir-x2", "n": 103, "r": 0.7640, "p": "<1e-20"},
+    {"model": "swinir-x3", "n": 103, "r": 0.7894, "p": "<1e-22"},
+    {"model": "swinir-x4", "n": 103, "r": 0.7955, "p": "<1e-22"}
+  ],
+  "summary": {
+    "n_configs": 8,
+    "n_layers_total": 1010,
+    "r_min": 0.4847,
+    "r_max": 0.7955,
+    "all_positive": true,
+    "paper_claim": "r in [0.48, 0.80] across 8 model configurations"
+  }
+}

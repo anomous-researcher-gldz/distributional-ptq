@@ -1,0 +1,80 @@
+{
+  "K_true": 4,
+  "D": 256,
+  "N": 1000,
+  "B": 64,
+  "rows": [
+    {
+      "separation_S": 0.0,
+      "compactness_ratio": 1.0008389034275882,
+      "mse_per_tensor": 0.0,
+      "mse_per_token": 0.0,
+      "mse_per_anchor": 0.0,
+      "gain_pcsa_vs_tensor_pct": 0.0,
+      "gain_pcsa_vs_token_pct": 0.0
+    },
+    {
+      "separation_S": 0.5,
+      "compactness_ratio": 0.9720496603528115,
+      "mse_per_tensor": 4.734945536264633e-05,
+      "mse_per_token": 1.5591330872514944e-05,
+      "mse_per_anchor": 4.403748926268567e-05,
+      "gain_pcsa_vs_tensor_pct": 6.994729030343712,
+      "gain_pcsa_vs_token_pct": -182.44855825821008
+    },
+    {
+      "separation_S": 1.0,
+      "compactness_ratio": 0.888450337867817,
+      "mse_per_tensor": 0.0002108968914766724,
+      "mse_per_token": 6.222273771708862e-05,
+      "mse_per_anchor": 0.0001917201835494138,
+      "gain_pcsa_vs_tensor_pct": 9.092930575214172,
+      "gain_pcsa_vs_token_pct": -208.11917087466963
+    },
+    {
+      "separation_S": 2.0,
+      "compactness_ratio": 0.6798701975294712,
+      "mse_per_tensor": 0.0008062236071273972,
+      "mse_per_token": 0.0002483422900752981,
+      "mse_per_anchor": 0.0007192149742063953,
+      "gain_pcsa_vs_tensor_pct": 10.792121708147038,
+      "gain_pcsa_vs_token_pct": -189.6063227847046
+    },
+    {
+      "separation_S": 4.0,
+      "compactness_ratio": 0.4193034142644977,
+      "mse_per_tensor": 0.0031692600169714214,
+      "mse_per_token": 0.0009949504550806584,
+      "mse_per_anchor": 0.002927451993539316,
+      "gain_pcsa_vs_tensor_pct": 7.6297944042843024,
+      "gain_pcsa_vs_token_pct": -194.23093166000857
+    },
+    {
+      "separation_S": 8.0,
+      "compactness_ratio": 0.22332055838774661,
+      "mse_per_tensor": 0.0146760422319482,
+      "mse_per_token": 0.004009106785539689,
+      "mse_per_anchor": 0.013041431866935045,
+      "gain_pcsa_vs_tensor_pct": 11.137950812479811,
+      "gain_pcsa_vs_token_pct": -225.29519827143898
+    },
+    {
+      "separation_S": 16.0,
+      "compactness_ratio": 0.1189456997643947,
+      "mse_per_tensor": 0.05562713916144226,
+      "mse_per_token": 0.01594806518368111,
+      "mse_per_anchor": 0.049216049715711946,
+      "gain_pcsa_vs_tensor_pct": 11.525110840454902,
+      "gain_pcsa_vs_token_pct": -208.60201001731778
+    },
+    {
+      "separation_S": 32.0,
+      "compactness_ratio": 0.05706727898189686,
+      "mse_per_tensor": 0.21695688395397986,
+      "mse_per_token": 0.06391010275292729,
+      "mse_per_anchor": 0.19767449047003116,
+      "gain_pcsa_vs_tensor_pct": 8.887661517132965,
+      "gain_pcsa_vs_token_pct": -209.3008490914639
+    }
+  ]
+}
