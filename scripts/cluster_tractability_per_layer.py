@@ -84,13 +84,24 @@ def collect_sam_per_layer(n_images=50):
     return {i: np.concatenate(per_layer[i], axis=0) for i in range(n_blocks)}
 
 
+_LLM_MODEL_PATHS = {
+    "llama3-8b": "/data/modelzoo/meta-llama/Meta-Llama-3-8B",
+    "qwen25-7b": "/data/modelzoo/Qwen/Qwen2.5-7B",
+}
+
+
 @torch.no_grad()
-def collect_llama_per_layer(n_prompts=50):
+def collect_llm_per_layer(model_key: str = "llama3-8b", n_prompts: int = 50):
+    """Collect per-layer q_proj input descriptors from any HF causal LM.
+
+    Works for LLaMA-3 and Qwen-2.5 (both expose model.model.layers[i].self_attn.q_proj).
+    """
     from transformers import AutoModelForCausalLM, AutoTokenizer
     from datasets import load_dataset
-    tok = AutoTokenizer.from_pretrained("/data/modelzoo/meta-llama/Meta-Llama-3-8B")
+    path = _LLM_MODEL_PATHS[model_key]
+    tok = AutoTokenizer.from_pretrained(path, use_fast=False)
     model = AutoModelForCausalLM.from_pretrained(
-        "/data/modelzoo/meta-llama/Meta-Llama-3-8B", torch_dtype=torch.bfloat16
+        path, torch_dtype=torch.bfloat16
     ).cuda().eval()
     n_layers = len(model.model.layers)
     per_layer = {i: [] for i in range(n_layers)}
@@ -115,26 +126,36 @@ def collect_llama_per_layer(n_prompts=50):
     return {i: np.concatenate(per_layer[i], axis=0) for i in range(n_layers)}
 
 
+# Back-compat alias used by existing callers
+collect_llama_per_layer = lambda n_prompts=50: collect_llm_per_layer("llama3-8b", n_prompts)
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--n_inputs", type=int, default=50)
     p.add_argument("--k_sam", type=int, default=4)
     p.add_argument("--k_llm", type=int, default=8)
+    p.add_argument("--llm", default="llama3-8b",
+                   choices=["llama3-8b", "qwen25-7b"],
+                   help="LLM target for per-layer descriptor collection")
+    p.add_argument("--skip_sam", action="store_true",
+                   help="Skip SAM collection (re-running just the LLM half).")
     p.add_argument("--out", default="/home/ubuntu/unifying-ptq/results/cluster_tractability_per_layer.json")
     args = p.parse_args()
 
-    print("=== SAM-B per-layer ===", flush=True)
-    sam_lay = collect_sam_per_layer(args.n_inputs)
     sam_rows = []
-    for i, X in sam_lay.items():
-        c, sd = compactness_for(X, args.k_sam)
-        sam_rows.append({"layer": i, "n": int(X.shape[0]), "d": int(X.shape[1]),
-                         "compactness": c, "std": sd})
-        print(f"  SAM layer {i}: n={X.shape[0]} d={X.shape[1]} c={c:.4f} ± {sd:.4f}", flush=True)
-    del sam_lay; gc.collect(); torch.cuda.empty_cache()
+    if not args.skip_sam:
+        print("=== SAM-B per-layer ===", flush=True)
+        sam_lay = collect_sam_per_layer(args.n_inputs)
+        for i, X in sam_lay.items():
+            c, sd = compactness_for(X, args.k_sam)
+            sam_rows.append({"layer": i, "n": int(X.shape[0]), "d": int(X.shape[1]),
+                             "compactness": c, "std": sd})
+            print(f"  SAM layer {i}: n={X.shape[0]} d={X.shape[1]} c={c:.4f} ± {sd:.4f}", flush=True)
+        del sam_lay; gc.collect(); torch.cuda.empty_cache()
 
-    print("\n=== LLaMA-3-8B per-layer ===", flush=True)
-    llm_lay = collect_llama_per_layer(args.n_inputs)
+    print(f"\n=== {args.llm} per-layer ===", flush=True)
+    llm_lay = collect_llm_per_layer(args.llm, args.n_inputs)
     llm_rows = []
     for i, X in llm_lay.items():
         c, sd = compactness_for(X, args.k_llm)
@@ -143,22 +164,29 @@ def main():
         if i < 4 or i >= len(llm_lay) - 2 or i % 4 == 0:
             print(f"  LLM layer {i}: c={c:.4f} ± {sd:.4f}", flush=True)
 
-    sam_c = [r["compactness"] for r in sam_rows]
     llm_c = [r["compactness"] for r in llm_rows]
     summary = {
-        "sam_min": float(np.min(sam_c)), "sam_max": float(np.max(sam_c)),
-        "sam_median": float(np.median(sam_c)), "sam_n_layers": len(sam_c),
+        "llm_target": args.llm,
         "llm_min": float(np.min(llm_c)), "llm_max": float(np.max(llm_c)),
         "llm_median": float(np.median(llm_c)), "llm_n_layers": len(llm_c),
-        "k_sam": args.k_sam, "k_llm": args.k_llm,
-        "gap_question": "Is SAM's worst (highest compactness) < LLM's best (lowest)?",
-        "sam_worst": float(np.max(sam_c)), "llm_best": float(np.min(llm_c)),
-        "structural_gap": float(np.max(sam_c)) < float(np.min(llm_c)),
+        "k_llm": args.k_llm,
     }
+    if sam_rows:
+        sam_c = [r["compactness"] for r in sam_rows]
+        summary.update({
+            "sam_min": float(np.min(sam_c)), "sam_max": float(np.max(sam_c)),
+            "sam_median": float(np.median(sam_c)), "sam_n_layers": len(sam_c),
+            "k_sam": args.k_sam,
+            "gap_question": "Is SAM's worst (highest compactness) < LLM's best (lowest)?",
+            "sam_worst": float(np.max(sam_c)), "llm_best": float(np.min(llm_c)),
+            "structural_gap": float(np.max(sam_c)) < float(np.min(llm_c)),
+        })
     print(f"\n=== SUMMARY ===", flush=True)
-    print(f"  SAM-B (K={args.k_sam}): min={summary['sam_min']:.4f} max={summary['sam_max']:.4f} median={summary['sam_median']:.4f} n_layers={summary['sam_n_layers']}", flush=True)
-    print(f"  LLaMA-3-8B (K={args.k_llm}): min={summary['llm_min']:.4f} max={summary['llm_max']:.4f} median={summary['llm_median']:.4f} n_layers={summary['llm_n_layers']}", flush=True)
-    print(f"  SAM worst ({summary['sam_worst']:.4f}) < LLM best ({summary['llm_best']:.4f}) ? {summary['structural_gap']}", flush=True)
+    if sam_rows:
+        print(f"  SAM-B (K={args.k_sam}): min={summary['sam_min']:.4f} max={summary['sam_max']:.4f} median={summary['sam_median']:.4f} n_layers={summary['sam_n_layers']}", flush=True)
+    print(f"  {args.llm} (K={args.k_llm}): min={summary['llm_min']:.4f} max={summary['llm_max']:.4f} median={summary['llm_median']:.4f} n_layers={summary['llm_n_layers']}", flush=True)
+    if sam_rows:
+        print(f"  SAM worst ({summary['sam_worst']:.4f}) < LLM best ({summary['llm_best']:.4f}) ? {summary['structural_gap']}", flush=True)
 
     pathlib.Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     pathlib.Path(args.out).write_text(json.dumps({

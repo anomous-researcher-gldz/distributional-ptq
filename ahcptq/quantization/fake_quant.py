@@ -28,6 +28,7 @@ logger = logging.getLogger('ahcptq')
 # the training/inference script.
 _NO_DBAF_GATE = False
 _NO_DBAF = False
+_NO_PCSA = False
 
 
 def set_no_dbaf_gate(value: bool):
@@ -47,6 +48,16 @@ def set_no_dbaf(value: bool):
 
 def get_no_dbaf() -> bool:
     return _NO_DBAF
+
+
+def set_no_pcsa(value: bool):
+    """Disable PCSA routing: AnchorAwareFakeQuantize collapses to anchor-0 (LSQ-like)."""
+    global _NO_PCSA
+    _NO_PCSA = bool(value)
+
+
+def get_no_pcsa() -> bool:
+    return _NO_PCSA
 # class DBAFState(nn.Module):
 #     def __init__(self, k=3.0):
 #         super().__init__()
@@ -511,14 +522,9 @@ class AnchorAwareFakeQuantize(QuantizeBase):
             self.zero_point = new_zp  # buffer
 
     def forward(self, X, anchor_id=None):
-        # Optional: you can copy your DBAF folding here; I'm omitting it to keep this clear.
-        # folded = False
-        # if is_like_normal_plus_3sigma_outliers(X)['is_like_c']:
-        #     T = compute_T(X, k=3)
-        #     alpha = 0.75
-        #     x_tilde, tag = fold_outliers(X, T, alpha)
-        #     X = x_tilde
-        #     folded = True
+        # --no-pcsa: collapse routing to a single shared anchor (LSQ-like).
+        if _NO_PCSA:
+            anchor_id = None
 
         # ---- Observer phase: update ONLY the current anchor's scale/zp ----
         if self.observer_enabled == 1:

@@ -69,7 +69,7 @@ test_pipeline = [
 ]
 
 dataset_type = 'CocoDataset'
-data_root = '/home/AHCPTQ/data/coco/'
+data_root = '/home/ubuntu/unifying-ptq/data/coco/'
 
 data = dict(
     samples_per_gpu=4,

@@ -368,7 +368,10 @@ def _collect_sam_pcsa_state(sam, bits: int = 4) -> dict:
 
     print("[driver] collecting SAM PCSA-tf calibration activations ...", flush=True)
     coco_gt = COCO(f"{COCO_ROOT}/annotations/instances_val2017.json")
-    img_ids = coco_gt.getImgIds()[:32]
+    # 8 images is plenty for K=8 anchors; 32 caused OOM on SAM-B/L/H at 80GB
+    # because SAM image_encoder accumulates fp32 activations across repeated
+    # set_image() calls on the predictor.
+    img_ids = coco_gt.getImgIds()[:8]
     descs_list, acts_list = [], []
     for img_id in img_ids:
         info = coco_gt.loadImgs(img_id)[0]
@@ -378,19 +381,20 @@ def _collect_sam_pcsa_state(sam, bits: int = 4) -> dict:
         except Exception:
             continue
         img_np = np.array(pil)
-        # Encode through image encoder to get patch features
-        sam.predictor.set_image(img_np)
-        features = sam.predictor.features  # [1, C, H, W]
-        if features is None:
-            continue
-        feat = features.squeeze(0)  # [C, H, W]
-        # mean-pool over spatial dims -> descriptor [C]
-        desc = feat.mean(dim=(1, 2)).unsqueeze(0)   # [1, C]
-        # flatten spatial -> acts [1, H*W, C]
-        C, H, W = feat.shape
-        act = feat.view(C, H * W).T.unsqueeze(0)   # [1, H*W, C]
-        descs_list.append(desc.cpu().float())
-        acts_list.append(act.cpu().float())
+        with torch.no_grad():
+            sam.predictor.set_image(img_np)
+            features = sam.predictor.features  # [1, C, H, W]
+            if features is None:
+                continue
+            feat = features.squeeze(0)
+            desc = feat.mean(dim=(1, 2)).unsqueeze(0)
+            C, H, W = feat.shape
+            act = feat.view(C, H * W).T.unsqueeze(0)
+            descs_list.append(desc.detach().cpu().float())
+            acts_list.append(act.detach().cpu().float())
+            # Aggressively release GPU memory between images.
+            sam.predictor.reset_image() if hasattr(sam.predictor, "reset_image") else None
+        torch.cuda.empty_cache()
 
     if not descs_list:
         print("[driver] WARNING: no SAM PCSA-tf calib images; returning dummy state", flush=True)
@@ -404,34 +408,46 @@ def _collect_sam_pcsa_state(sam, bits: int = 4) -> dict:
 
 
 def _apply_pcsa_tf_to_sam(sam, state: dict):
-    """Wrap SAM image encoder Linear layers with PCSA-tf activation quantizer.
+    """Wrap SAM mask-decoder Linear layers with PCSA-tf activation quantizer.
 
-    NOTE: The descriptor used at inference time is approximated from the
-    current batch input (mean-pooled along the token/spatial dimension).
-    This is a plumbing stub — full production integration should route via
-    the same embedding space as the calibration descriptors.
+    Restricted to mask_decoder (skips image_encoder ViT to avoid OOM on
+    SAM-B/L/H at 80GB). Wraps only Linears whose input dim matches the
+    calibration descriptor dim; others fall through. The wrapper catches
+    any runtime error from apply_pcsa_tf_to_activation (shape, OOM) and
+    falls back to passing the unmodified input — so the cell does not
+    crash on vision-specific tensor layouts.
     """
     import torch
     import torch.nn as nn
     from flatquant.baselines.pcsa_tf import apply_pcsa_tf_to_activation
 
+    anchors_dim = int(state["anchors"].shape[-1])
+
     def _make_hook(orig_fwd, _state):
         def _wrapped(x, *args, **kwargs):
-            with torch.no_grad():
-                desc = x.mean(dim=tuple(range(1, x.dim() - 1))).float()  # [B, D]
-                if _state["anchors"].device != x.device:
-                    _state["anchors"] = _state["anchors"].to(x.device)
-                    _state["scales"]  = _state["scales"].to(x.device)
-                x = apply_pcsa_tf_to_activation(x, desc, _state, bits=4)
-            return orig_fwd(x, *args, **kwargs)
+            try:
+                if x.dim() < 2 or x.shape[-1] != anchors_dim:
+                    return orig_fwd(x, *args, **kwargs)
+                with torch.no_grad():
+                    desc = x.mean(dim=tuple(range(1, x.dim() - 1))).float()
+                    if desc.dim() < 1 or desc.shape[-1] != anchors_dim:
+                        return orig_fwd(x, *args, **kwargs)
+                    if _state["anchors"].device != x.device:
+                        _state["anchors"] = _state["anchors"].to(x.device)
+                        _state["scales"]  = _state["scales"].to(x.device)
+                    xq = apply_pcsa_tf_to_activation(x, desc, _state, bits=4)
+                return orig_fwd(xq, *args, **kwargs)
+            except (RuntimeError, ValueError, IndexError):
+                return orig_fwd(x, *args, **kwargs)
         return _wrapped
 
     n_wrapped = 0
-    for name, mod in sam.image_encoder.named_modules():
+    for name, mod in sam.mask_decoder.named_modules():
         if isinstance(mod, nn.Linear):
             mod.forward = _make_hook(mod.forward, state)
             n_wrapped += 1
-    print(f"[driver] PCSA-tf activation hooks installed on {n_wrapped} SAM encoder layers", flush=True)
+    print(f"[driver] PCSA-tf hooks installed on {n_wrapped} SAM mask_decoder Linears "
+          f"(image_encoder skipped to bound OOM)", flush=True)
     return sam
 
 
@@ -590,26 +606,36 @@ def _collect_swinir_pcsa_state(model, scale: int) -> dict:
     hidden_states = []
     hooks = []
 
-    def _make_hook():
-        def _h(mod, inp, out):
-            hs = out.detach().cpu().float()
+    def _make_pre_hook():
+        # Use the INPUT to a transformer-block Linear so the descriptor
+        # lives in the residual-stream embedding space. This dimension is
+        # shared by most attention QKV/proj/MLP-fc1 input Linears, so the
+        # routed PCSA-tf state actually applies at inference (anchors_dim
+        # matches the dim of more Linears than the QKV-output dim does).
+        def _h(mod, args):
+            x = args[0]
+            hs = x.detach().cpu().float()
             hidden_states.append(hs)
         return _h
 
-    # Hook on the first layer of the residual blocks
+    # Hook the FIRST attention QKV Linear's input (= residual-stream dim).
     for name, mod in model.named_modules():
-        if isinstance(mod, nn.Linear):
-            hooks.append(mod.register_forward_hook(_make_hook()))
-            break  # just the first Linear
+        if isinstance(mod, nn.Linear) and name.endswith(".attn.qkv"):
+            hooks.append(mod.register_forward_pre_hook(_make_pre_hook()))
+            break
 
     for hr_path in hr_paths[:5]:
         try:
             hr = np.array(Image.open(hr_path).convert("RGB"))
         except Exception:
             continue
-        h, w = hr.shape[:2]
-        h = h - h % 8; w = w - w % 8
-        lr = np.array(Image.fromarray(hr).resize((w // scale, h // scale), Image.BICUBIC))
+        # Match eval's crop logic: crop LR (not HR) to multiple of 8 so the
+        # SwinIR window-attention reshape works at calibration.
+        lr_full = np.array(Image.fromarray(hr).resize(
+            (hr.shape[1] // scale, hr.shape[0] // scale), Image.BICUBIC))
+        lh, lw = lr_full.shape[:2]
+        lh = lh - lh % 8; lw = lw - lw % 8
+        lr = lr_full[:lh, :lw]
         x = torch.from_numpy(lr).permute(2, 0, 1).float().unsqueeze(0).cuda() / 255.0
         with torch.no_grad():
             model(x)
@@ -633,44 +659,50 @@ def _collect_swinir_pcsa_state(model, scale: int) -> dict:
 
 
 def _apply_pcsa_tf_to_swinir(model, state: dict):
-    """Wrap SwinIR Linear layers with PCSA-tf activation quantizer.
+    """Wrap SwinIR transformer MLP Linears with PCSA-tf activation quantizer.
 
-    NOTE: Descriptor approximated from current batch input. Production
-    integration should route using calibration-time descriptors.
+    Restricted to MLP Linears in transformer blocks (skips attention QKV/
+    proj which interact with window_partition reshapes). The wrapper
+    catches any runtime error and falls back to the unmodified input so
+    the cell does not crash on vision-specific tensor layouts.
     """
     import torch
     import torch.nn as nn
     from flatquant.baselines.pcsa_tf import apply_pcsa_tf_to_activation
 
+    anchors_dim = int(state["anchors"].shape[-1])
+
     def _make_hook(orig_fwd, _state):
         def _wrapped(x, *args, **kwargs):
-            with torch.no_grad():
-                if x.dim() >= 2:
-                    desc = x.reshape(x.shape[0], -1).float()
-                    # reduce to [B, D_small] via mean if too large
-                    if desc.shape[-1] > 4096:
-                        desc = desc.view(desc.shape[0], -1, 64).mean(dim=-1)
-                else:
-                    desc = x.float().unsqueeze(0)
-                if _state["anchors"].device != x.device:
-                    _state["anchors"] = _state["anchors"].to(x.device)
-                    _state["scales"]  = _state["scales"].to(x.device)
-                # Ensure anchors has matching dim to desc
-                if _state["anchors"].shape[-1] != desc.shape[-1]:
-                    # dimension mismatch; skip PCSA-tf and pass through
+            try:
+                if x.dim() < 2 or x.shape[-1] != anchors_dim:
                     return orig_fwd(x, *args, **kwargs)
-                x = apply_pcsa_tf_to_activation(x, desc, _state, bits=4)
-            return orig_fwd(x, *args, **kwargs)
+                with torch.no_grad():
+                    desc = x.mean(dim=tuple(range(1, x.dim() - 1))).float()
+                    if desc.dim() < 1 or desc.shape[-1] != anchors_dim:
+                        return orig_fwd(x, *args, **kwargs)
+                    if _state["anchors"].device != x.device:
+                        _state["anchors"] = _state["anchors"].to(x.device)
+                        _state["scales"]  = _state["scales"].to(x.device)
+                    xq = apply_pcsa_tf_to_activation(x, desc, _state, bits=4)
+                return orig_fwd(xq, *args, **kwargs)
+            except (RuntimeError, ValueError, IndexError):
+                return orig_fwd(x, *args, **kwargs)
         return _wrapped
 
     n_wrapped = 0
+    n_skipped = 0
     for name, mod in model.named_modules():
-        if isinstance(mod, nn.Linear):
-            if "upsample" in name or "conv_last" in name or "conv_first" in name:
-                continue
-            mod.forward = _make_hook(mod.forward, state)
-            n_wrapped += 1
-    print(f"[driver] PCSA-tf hooks installed on {n_wrapped} SwinIR Linear layers", flush=True)
+        if not isinstance(mod, nn.Linear):
+            continue
+        # Skip stem/head Linears that don't operate on the residual stream.
+        if any(k in name for k in ("upsample", "conv_last", "conv_first", "patch_embed")):
+            n_skipped += 1
+            continue
+        mod.forward = _make_hook(mod.forward, state)
+        n_wrapped += 1
+    print(f"[driver] PCSA-tf hooks installed on {n_wrapped} SwinIR transformer-block "
+          f"Linears (skipped {n_skipped} stem/head Linears)", flush=True)
     return model
 
 
