@@ -1,0 +1,21 @@
+{
+  "title": "DBAF alpha sensitivity on Qwen-2.5-7B W4A4 (RTN+DBAF), full grid",
+  "model": "Qwen-2.5-7B",
+  "config": "W4A4 (W and A folded with same alpha), per-tensor symmetric INT4, qmax=7",
+  "host": "RTN+DBAF",
+  "metrics": "wikitext2 PPL (wt2), C4 PPL (c4) — raw, lower better",
+  "calibration": "128 WikiText-2 train sequences, length 2048",
+  "alpha_grid": [0.02, 0.25, 0.5, 0.75, 0.95],
+  "cells": {
+    "0.02": {"wt2": "NaN", "c4": "NaN", "note": "catastrophic — analytic-MSE optimum amplifies unfold noise (consistent with LLaMA α=0.02 = 6.55e5)"},
+    "0.25": {"wt2": 55.53, "c4": 83.00, "note": "minimum (from paper Table 4 / hostmatrix-qwen)"},
+    "0.5":  {"wt2": 7310.54, "c4": 11164.82, "note": "this sweep (new)"},
+    "0.75": {"wt2": 39800, "c4": 44576, "note": "from paper Table 5 / alpha-sensitivity"},
+    "0.95": {"wt2": 89895.27, "c4": 110289.99, "note": "this sweep (new)"}
+  },
+  "monotonic_past_minimum": true,
+  "minimum_at_alpha_0p25": true,
+  "ratio_0p75_over_0p25": 716.7,
+  "ratio_0p95_over_0p25": 1618.7,
+  "notes": "Confirms LLaMA-3-8B α-sweep pattern on a harder model: U-shape with minimum at α=0.25, catastrophic at α=0.02 (analytic optimum, where unfold noise dominates), monotone increasing for α≥0.25. Qwen-2.5-7B is much more sensitive than LLaMA-3-8B because of its 10× more leptokurtic activations (mean kurtosis 961 vs 95). Generated locally on A100 by /tmp/qwen_alpha_sweep.sh."
+}

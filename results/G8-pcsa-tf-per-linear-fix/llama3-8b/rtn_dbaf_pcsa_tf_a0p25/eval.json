@@ -1,0 +1,12 @@
+{
+  "target": "llama3-8b",
+  "method": "rtn",
+  "augments": "dbaf+pcsa_tf",
+  "alpha": 0.25,
+  "pcsa_k": 8,
+  "metrics": {
+    "wikitext2_ppl": 29206.830078125,
+    "c4_ppl": 22743.265625
+  },
+  "wallclock_seconds": 152.30534958839417
+}

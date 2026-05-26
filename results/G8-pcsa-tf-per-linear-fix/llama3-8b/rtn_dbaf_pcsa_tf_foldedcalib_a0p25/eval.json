@@ -1,0 +1,12 @@
+{
+  "target": "llama3-8b",
+  "method": "rtn",
+  "augments": "dbaf+pcsa_tf_foldedcalib",
+  "alpha": 0.25,
+  "pcsa_k": 8,
+  "metrics": {
+    "wikitext2_ppl": 54520.70703125,
+    "c4_ppl": 55379.86328125
+  },
+  "wallclock_seconds": 199.61173915863037
+}

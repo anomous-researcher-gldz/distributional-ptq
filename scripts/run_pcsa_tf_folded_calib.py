@@ -54,57 +54,81 @@ def _dbaf_fold_per_token(x, alpha, T_sigma):
 
 def _collect_pcsa_state_folded(model, tok, alpha: float, T_sigma: float,
                                 K: int = 8) -> dict:
-    """Like _collect_llm_pcsa_state but folds captured acts before fit."""
+    """Per-Linear PCSA-tf calibration with FOLDED activations.
+
+    Hooks each q/k/v/o/gate/up_proj individually (matches the application
+    path in _apply_pcsa_tf_to_llm). For each, fold the captured input at
+    (alpha, T_sigma) before fit_pcsa_tf, so the calibrated scale matches
+    the post-fold distribution PCSA-tf actually sees at inference.
+
+    Per-block calibration (pre-2026-05-23) gave catastrophic PPL because
+    scales fit on the residual stream were applied to post-RMSNorm Linear
+    inputs with different magnitudes.
+    """
+    import re
     import torch
+    import torch.nn as nn
     from flatquant.baselines.pcsa_tf import fit_pcsa_tf
     from run_training_free_full_table import _calib_batch_llm
 
-    print("[v7] capturing per-block activations on FP model ...", flush=True)
-    per_layer_inputs: dict[int, list] = {}
+    print("[v7] capturing per-Linear activations on FP model ...", flush=True)
+
+    hidden_size = model.config.hidden_size
+    pat = re.compile(r"model\.layers\.\d+\.")
+    target_names: list[str] = []
+    for name, mod in model.named_modules():
+        if not isinstance(mod, nn.Linear) or "lm_head" in name:
+            continue
+        if mod.in_features != hidden_size:
+            continue
+        if not pat.search(name):
+            continue
+        target_names.append(name)
+
+    per_linear_inputs: dict[str, list] = {n: [] for n in target_names}
     hooks = []
 
-    def _make_hook(layer_idx: int):
-        def _h(module, args, kwargs):
-            x = args[0] if args else kwargs.get("hidden_states")
-            if x is not None and x.dim() == 3:
-                per_layer_inputs.setdefault(layer_idx, []).append(
-                    x.detach().float().cpu()
-                )
+    def _make_pre_hook(linear_name):
+        def _h(module, args):
+            per_linear_inputs[linear_name].append(args[0].detach().float().cpu())
         return _h
 
-    decoder_layers = model.model.layers
-    for i, blk in enumerate(decoder_layers):
-        h = blk.register_forward_pre_hook(_make_hook(i), with_kwargs=True)
-        hooks.append(h)
+    name_to_mod = dict(model.named_modules())
+    for n in target_names:
+        hooks.append(name_to_mod[n].register_forward_pre_hook(_make_pre_hook(n)))
 
-    # Same calibration set as the un-folded variant for apples-to-apples
     calib = _calib_batch_llm(tok)
     with torch.no_grad():
-        for batch in calib:
-            ids = batch.to(next(model.parameters()).device)
-            if ids.dim() == 1:
-                ids = ids.unsqueeze(0)
-            model(ids)
+        ids = calib.to(next(model.parameters()).device)
+        if ids.dim() == 1:
+            ids = ids.unsqueeze(0)
+        model(ids)
 
     for h in hooks:
         h.remove()
 
     state: dict = {}
-    for i, x_chunks in per_layer_inputs.items():
-        if not x_chunks:
+    for n in target_names:
+        bufs = per_linear_inputs[n]
+        if not bufs:
             continue
-        x = torch.cat(x_chunks, dim=0)  # [N, T, D]
-        # Descriptors: un-folded mean over tokens (matches inference routing)
+        x = bufs[0]
+        if x.dim() == 2:
+            x = x.unsqueeze(0)
+        # Descriptors: UN-folded mean over tokens (matches inference routing,
+        # which routes on the un-folded input then folds inside PCSA-tf).
         descs = x.mean(dim=1)
-        # Acts: FOLDED at the same alpha/T_sigma the inference path uses
+        # Acts: FOLDED at the same alpha/T_sigma the inference path uses.
         acts_folded = _dbaf_fold_per_token(x, alpha, T_sigma)
-        state[i] = fit_pcsa_tf(descs, acts_folded, K=K)
+        state[n] = fit_pcsa_tf(descs, acts_folded, K=K)
 
-    last = max(state)
-    print(f"[v7] fitted PCSA-tf state for {len(state)} blocks "
-          f"(folded calib, alpha={alpha})", flush=True)
-    print(f"[v7] scales[0]={state[0]['scales'].tolist()}", flush=True)
-    print(f"[v7] scales[{last}]={state[last]['scales'].tolist()}", flush=True)
+    if state:
+        first = next(iter(state))
+        last = list(state)[-1]
+        print(f"[v7] fitted PCSA-tf state for {len(state)} Linears "
+              f"(folded calib, alpha={alpha})", flush=True)
+        print(f"[v7] scales[{first}]={state[first]['scales'].tolist()}", flush=True)
+        print(f"[v7] scales[{last}]={state[last]['scales'].tolist()}", flush=True)
     return state
 
 
