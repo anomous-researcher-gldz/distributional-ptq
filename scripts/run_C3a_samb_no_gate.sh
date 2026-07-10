@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # C3a: AHCPTQ + DBAF (no-gate) + PCSA on SAM-B + YOLOX W4A4.
 # Mirrors run_s2_samh_yolox.sh recipe but on SAM-B + with --no-dbaf-gate.
-# Compares end-to-end vs the gated ICML 18.2 mAP result on SAM-B.
+# Compares end-to-end vs the gated prior 18.2 mAP result on SAM-B.
 set -e
 cd /home/ubuntu/unifying-ptq
 source $HOME/miniconda3/etc/profile.d/conda.sh

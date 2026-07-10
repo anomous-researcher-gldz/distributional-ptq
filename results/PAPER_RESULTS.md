@@ -62,7 +62,7 @@ W4, per-channel weight scaling, WikiText-2 perplexity (lower is better).
 clipping (α=0) destroys the model (PPL=79k), while DBAF (α=0.75) gives PPL=8.87.
 This isolates DBAF's mechanism: the value is *not* dynamic-range reduction
 (clipping also does that), but *outlier-ordering preservation* via affine folding.
-Direct answer to reviewer aCWD's "what if α=1.0 / clipping" line of questioning.
+Direct answer to a reviewer's "what if α=1.0 / clipping" line of questioning.
 
 FP16 baseline (LLaMA-3-8B WikiText-2): ~6.14 PPL.
 
@@ -237,7 +237,7 @@ captures roughly this transition.
 
 ---
 
-## Bucket 2: Fine-tuned / optimized methods (REUSE from ICML + verify)
+## Bucket 2: Fine-tuned / optimized methods (REUSE from prior results + verify)
 
 DBAF stacked on baselines that already address outliers via learned
 rotations / Hadamard transforms. Gains are small but consistent — this is
@@ -254,12 +254,12 @@ recover some of that loss.
 
 | Method | KV-cache | WikiText-2 | C4 | Source |
 |---|---|---|---|---|
-| FP16 | FP16 | 6.14 | 9.45 | ICML Table 5 |
-| SmoothQuant | FP16 | 210.19 | 187.93 | ICML Table 5 |
-| QuaRot | FP16 | 10.60 | 17.19 | ICML Table 5 |
-| SpinQuant | FP16 | 7.96 | 13.45 | ICML Table 5 |
+| FP16 | FP16 | 6.14 | 9.45 | prior Table 5 |
+| SmoothQuant | FP16 | 210.19 | 187.93 | prior Table 5 |
+| QuaRot | FP16 | 10.60 | 17.19 | prior Table 5 |
+| SpinQuant | FP16 | 7.96 | 13.45 | prior Table 5 |
 | FlatQuant | FP16 | 6.98 | 11.13 | FlatQuant README Table 1 |
-| FlatQuant + DBAF + PCSA | FP16 | 6.96 | — | our ICML Table 5 |
+| FlatQuant + DBAF + PCSA | FP16 | 6.96 | — | our prior Table 5 |
 | **Pure FlatQuant** (no DBAF, no PCSA) | **INT4 asym** | **6.964** | **11.158** | S5 ablation 2026-05-13 (NEW) |
 | **FlatQuant + DBAF + PCSA** | **INT4 asym** | **6.966** | **11.143** | S5 baseline 2026-05-13 |
 | FlatQuant + DBAF + PCSA + KV-PCSA v1 (per-anchor scalar) | INT4 asym | 8.32 | (crashed) | S5 v1 calib 2026-05-13 |
@@ -270,7 +270,7 @@ recover some of that loss.
 gives 6.964 WikiText / 11.158 C4 — **statistically identical to FlatQuant + DBAF +
 PCSA at 6.966 / 11.143**. So at W4A4 KV4 on LLaMA-3-8B, **DBAF + PCSA contribute
 ~zero benefit over well-tuned FlatQuant**. The 0.02 PPL gain seen at W4A4 KV16 in
-the ICML submission does not replicate at KV4. C1 (no-gate FlatQuant+DBAF+PCSA)
+the earlier version does not replicate at KV4. C1 (no-gate FlatQuant+DBAF+PCSA)
 will close the loop: if it also lands at ~6.97, the gate is confirmed inert in
 this regime.
 
@@ -322,13 +322,13 @@ Calibrated checkpoints:
 
 | Method | mAP | Source |
 |---|---|---|
-| FP | 37.2 | ICML Table 4 |
-| AHCPTQ | 13.4 | ICML Table 4 |
-| **AHCPTQ + DBAF + PCSA** | **18.2** | ICML Table 4; SAM-H reproduction pending |
+| FP | 37.2 | prior Table 4 |
+| AHCPTQ | 13.4 | prior Table 4 |
+| **AHCPTQ + DBAF + PCSA** | **18.2** | prior Table 4; SAM-H reproduction pending |
 | SAM-B + H-DETR + Ours | 20.6 | rebuttal |
 | Cross-detector PCSA transfer (YOLOX→H-DETR, recon-free) | 1.8 vs 1.9 (relative −5%) | rebuttal |
 
-### SAM-H (NEW for EMNLP — primary contribution to fill ICML gap)
+### SAM-H (NEW for EMNLP — primary contribution to fill prior gap)
 
 | Method | mAP | Status |
 |---|---|---|
@@ -340,12 +340,12 @@ Calibrated checkpoints:
 
 | Method | PSNR (Set5 ×2) | PSNR (Set5 ×3) | Source |
 |---|---|---|---|
-| FP | 38.15 | 34.63 | ICML Table 6 |
-| NoisyQuant | 37.50 | 31.09 | ICML Table 6 |
-| 2DQuant | 37.87 | 33.24 | ICML Table 6 |
-| CondiQuant | 38.03 | 33.92 | ICML Table 6 |
-| CompSRT | 38.13 | 34.56 | ICML Table 6 |
-| **CompSRT + DBAF** | **38.15** | **34.59** | ICML Table 6 |
+| FP | 38.15 | 34.63 | prior Table 6 |
+| NoisyQuant | 37.50 | 31.09 | prior Table 6 |
+| 2DQuant | 37.87 | 33.24 | prior Table 6 |
+| CondiQuant | 38.03 | 33.92 | prior Table 6 |
+| CompSRT | 38.13 | 34.56 | prior Table 6 |
+| **CompSRT + DBAF** | **38.15** | **34.59** | prior Table 6 |
 
 ---
 
@@ -365,7 +365,7 @@ Gaussian tensor + controlled outliers. DBAF MSE reduction vs outlier fraction:
 | 5% | 5.4% | 13.0% | 11.5% |
 | 10% | 0.0% | 0.7% | 1.5% |
 
-**Headline interpretation:** DBAF gain peaks at outlier fractions of 0.1–1% — the exact range observed in real models (per ICML Table 3, ~1% for SAM-B, 0.9% for SAM-H, etc.). At ≥10% fraction, "outliers" are no longer rare and DBAF gain decays to near zero.
+**Headline interpretation:** DBAF gain peaks at outlier fractions of 0.1–1% — the exact range observed in real models (per prior Table 3, ~1% for SAM-B, 0.9% for SAM-H, etc.). At ≥10% fraction, "outliers" are no longer rare and DBAF gain decays to near zero.
 
 Eval: `results/S4-dbaf-weak/synthetic/study.json`
 Figure: `paper/emnlp2026/figures/synthetic_outlier_gain.pdf`
@@ -389,7 +389,7 @@ Same threshold T=3σ; clip instead of fold. Expected: clipping degrades PPL vs D
 
 Apply DBAF to LayerNorm scale params / embeddings (low outlier fraction); expect ≈ no change.
 
-### Cross-arch outlier prevalence (S4.8) — port from ICML Table 3
+### Cross-arch outlier prevalence (S4.8) — port from prior Table 3
 
 | Model | Total tensors | Dense+outlier classified | % >3σ | Mean α* |
 |---|---|---|---|---|
@@ -401,7 +401,7 @@ The same distributional taxonomy applies across SAM scales; we extend to LLaMA +
 
 ---
 
-## Rebuttal-only material now in main paper (per ICML rebuttal)
+## Rebuttal-only material now in main paper (per prior rebuttal)
 
 - Real INT4 hardware latency (DBAF ≤1.7% overhead under real INT4 GEMM) — in S6 / S10.9
 - α=1.0 in grid (PPL: PCSA-only 6.97, DBAF-only 6.97, both 6.96) — in S7.1 / S10.6

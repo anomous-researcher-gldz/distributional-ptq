@@ -134,7 +134,7 @@ def aggregate_g8_llm(target: str = "llama3-8b"):
 
 # ---------------------------------------------------------------------------
 # AHCPTQ cross-detector summary  (only SAM-H+YOLOX is reproduced locally;
-# the other YOLOX cells are from the ICML paper, H-DETR is in remote G9 queue)
+# the other YOLOX cells are from the prior paper, H-DETR is in remote G9 queue)
 # ---------------------------------------------------------------------------
 
 def aggregate_crossdetector():
@@ -147,8 +147,8 @@ def aggregate_crossdetector():
         "\\toprule",
         "\\textbf{SAM size} & \\textbf{YOLOX (calib)} & \\textbf{H-DETR (transfer)} \\\\",
         "\\midrule",
-        "SAM-B & 18.22 (ICML cite) & \\todocell{ahcptq-cd-samb-hdetr-map} \\\\",
-        "SAM-L & 33.4  (ICML cite) & \\todocell{ahcptq-cd-saml-hdetr-map} \\\\",
+        "SAM-B & 18.22 (prior cite) & \\todocell{ahcptq-cd-samb-hdetr-map} \\\\",
+        "SAM-L & 33.4  (prior cite) & \\todocell{ahcptq-cd-saml-hdetr-map} \\\\",
         "SAM-H & 35.3  (this work) & \\todocell{ahcptq-cd-samh-hdetr-map} \\\\",
         "\\bottomrule",
         "\\end{tabular}",

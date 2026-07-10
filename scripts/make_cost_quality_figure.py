@@ -113,20 +113,20 @@ def _collect_llm() -> list[tuple[str, float, float, bool]]:
         else:
             missing_log.append(f"LLM | {name}: ppl={ppl} (skipped)")
 
-    # ── Hardcoded from PAPER_RESULTS.md / ICML Table 5 ───────────────────
+    # ── Hardcoded from PAPER_RESULTS.md / prior Table 5 ───────────────────
     # FP16 baseline (reference only — no cost)
     # _add("FP16", ...) — skip; not a quantization method
 
-    # SmoothQuant (ICML Table 5)
+    # SmoothQuant (prior Table 5)
     _add("SmoothQuant", "SmoothQuant", 210.19, False)
 
-    # SpinQuant (ICML Table 5)
+    # SpinQuant (prior Table 5)
     _add("SpinQuant", "SpinQuant", 7.96, False)
 
     # FlatQuant (FlatQuant README Table 1)
     _add("FlatQuant", "FlatQuant", 6.98, False)
 
-    # FlatQuant + DBAF + PCSA (ICML Table 5)
+    # FlatQuant + DBAF + PCSA (prior Table 5)
     _add("FlatQuant+DBAF+PCSA", "FlatQuant+DBAF+PCSA", 6.96, True)
 
     # ── From eval JSON files ──────────────────────────────────────────────
@@ -197,10 +197,10 @@ def _collect_sam() -> list[tuple[str, float, float, bool]]:
     if d:
         _add("RTN+DBAF", "RTN+DBAF", _get(d, "segm_mAP"), True)
 
-    # AHCPTQ baseline — hardcoded from ICML Table 4 (mAP in 0-100 scale → divide by 100)
+    # AHCPTQ baseline — hardcoded from prior Table 4 (mAP in 0-100 scale → divide by 100)
     _add("AHCPTQ-train", "AHCPTQ-train", 13.4 / 100.0, False)
 
-    # AHCPTQ + DBAF + PCSA — ICML Table 4
+    # AHCPTQ + DBAF + PCSA — prior Table 4
     _add("AHCPTQ+DBAF+PCSA", "AHCPTQ+DBAF+PCSA", 18.2 / 100.0, True)
 
     # Try eval JSON paths for AHCPTQ results
@@ -239,11 +239,11 @@ def _collect_sr() -> list[tuple[str, float, float, bool]]:
         psnr = _get(d, "psnr_db")
         _add("RTN+DBAF", "RTN+DBAF", psnr, True)
 
-    # CompSRT + DBAF (Set5 ×2) — ICML Table 6 (hardcoded)
+    # CompSRT + DBAF (Set5 ×2) — prior Table 6 (hardcoded)
     _add("CompSRT", "CompSRT", 38.13, False)
     _add("CompSRT+DBAF", "CompSRT+DBAF", 38.15, True)
 
-    # 2DQuant (ICML Table 6)
+    # 2DQuant (prior Table 6)
     _add("2DQuant", "2DQuant", 37.87, False)
 
     # Try to read 2DQuant eval JSON
