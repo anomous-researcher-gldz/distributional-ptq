@@ -1,0 +1,14 @@
+{
+  "W4_rtn": 0.29722,
+  "W4_dbaf_forced": 0.09719,
+  "W4_dbaf_gated": 0.29894,
+  "W3_rtn": 1.11208,
+  "W3_dbaf_forced": 1.78818,
+  "W3_dbaf_gated": 1.01314,
+  "pcsa_site_compactness_attn_q": {
+    "c": 0.756,
+    "std": 0.003,
+    "decision": "SKIP",
+    "n": 64
+  }
+}

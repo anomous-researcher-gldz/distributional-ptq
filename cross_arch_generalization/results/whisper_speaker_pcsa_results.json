@@ -1,0 +1,11 @@
+{
+  "regime": "clustered_4_speakers",
+  "compactness": 0.675,
+  "std": 0.008,
+  "decision": "SKIP",
+  "speaker_purity": 0.447,
+  "scale_cv": 0.011,
+  "nmse_global": 0.25661,
+  "nmse_pcsa": 0.25443,
+  "pcsa_improvement_pct": 0.85
+}

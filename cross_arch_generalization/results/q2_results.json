@@ -1,0 +1,29 @@
+[
+  {
+    "model": "DiT-XL-2 (diffusion transformer)",
+    "n_weight_tensors": 255,
+    "weight_gate_pass_pct": 69.8,
+    "mean_weight_kurt": 956.32,
+    "mean_weight_frac3": 0.0095,
+    "n_act_tensors": 255,
+    "act_gate_pass_pct": 34.1
+  },
+  {
+    "model": "CLIP-ViT-L/14 (multimodal)",
+    "n_weight_tensors": 219,
+    "weight_gate_pass_pct": 97.3,
+    "mean_weight_kurt": 4.8,
+    "mean_weight_frac3": 0.00524,
+    "n_act_tensors": 219,
+    "act_gate_pass_pct": 27.9
+  },
+  {
+    "model": "Whisper-small (speech)",
+    "n_weight_tensors": 195,
+    "weight_gate_pass_pct": 93.8,
+    "mean_weight_kurt": 6.71,
+    "mean_weight_frac3": 0.00786,
+    "n_act_tensors": 195,
+    "act_gate_pass_pct": 31.8
+  }
+]

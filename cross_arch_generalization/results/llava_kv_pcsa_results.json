@@ -1,0 +1,11 @@
+{
+  "model": "llava-1.5-7b",
+  "regime": "multimodal_4_image_clusters",
+  "compactness": 0.776,
+  "std": 0.0,
+  "decision": "SKIP",
+  "image_cluster_purity": 0.784,
+  "kv_scale_cv_K": 0.031,
+  "kv_scale_cv_V": 0.089,
+  "per_cluster_range_reduction_pct": 1.95
+}

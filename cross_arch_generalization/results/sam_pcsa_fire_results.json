@@ -1,0 +1,15 @@
+{
+  "model": "SAM-B",
+  "site": "mask_decoder.cross_attn_token_to_image.q_proj",
+  "prompt_regime": "generic grid point prompts on 5 skimage images (NOT the paper detector-box-on-COCO regime)",
+  "n_prompts": 180,
+  "compactness": 0.574,
+  "std": 0.005,
+  "decision": "SKIP",
+  "paper_reported_with_detector_prompts": 0.189,
+  "scale_cv": 0.007,
+  "nmse_global": 0.00163,
+  "nmse_pcsa": 0.00131,
+  "pcsa_improvement_pct": 19.8,
+  "note": "Paper c=0.189 fire requires detector-box prompts on COCO objects (mmdet pipeline). Generic point prompts self-disable."
+}

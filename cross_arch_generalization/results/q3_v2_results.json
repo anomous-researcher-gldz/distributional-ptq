@@ -1,0 +1,20 @@
+{
+  "low_diversity_near_duplicate": {
+    "n": 40,
+    "c": 0.671,
+    "std": 0.002,
+    "decision": "SKIP"
+  },
+  "medium_many_wikitext": {
+    "n": 40,
+    "c": 0.903,
+    "std": 0.005,
+    "decision": "SKIP"
+  },
+  "high_wikitext+c4": {
+    "n": 40,
+    "c": 0.842,
+    "std": 0.004,
+    "decision": "SKIP"
+  }
+}

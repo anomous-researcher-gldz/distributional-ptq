@@ -1,0 +1,15 @@
+{
+  "FP": 73.68,
+  "W4_rtn": 61.8,
+  "W4_dbaf_forced": 71.24,
+  "W4_dbaf_gated": 71.68,
+  "W3_rtn": 1.72,
+  "W3_dbaf_forced": 16.76,
+  "W3_dbaf_gated": 3.32,
+  "pcsa_site_compactness_q_proj": {
+    "c": 0.794,
+    "std": 0.003,
+    "decision": "SKIP",
+    "n": 1000
+  }
+}

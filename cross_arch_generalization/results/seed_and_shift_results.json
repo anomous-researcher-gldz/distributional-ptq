@@ -1,0 +1,43 @@
+{
+  "A_seed_variance": {
+    "n_seeds": 5,
+    "n_calib_per_seed": 16,
+    "n_common_layers": 225,
+    "gate_pass_mean": 63.1,
+    "gate_pass_std": 1.29,
+    "gate_pass_min": 61.3,
+    "gate_pass_max": 64.4,
+    "mean_pairwise_decision_agreement_pct": 94.7,
+    "layers_identical_across_all_seeds_pct": 89.3,
+    "pcsa_c_mean": 0.856,
+    "pcsa_c_std": 0.045,
+    "pcsa_decision": "SKIP"
+  },
+  "B_distribution_shift": {
+    "instruction_alpaca": {
+      "n_layers": 225,
+      "agreement_vs_wikitext_pct": 91.6,
+      "gate_pass_pct": 52.9,
+      "pcsa_c": 0.922,
+      "pcsa_c_std": 0.027,
+      "pcsa_decision": "SKIP"
+    },
+    "instruction_dolly": {
+      "n_layers": 225,
+      "agreement_vs_wikitext_pct": 95.6,
+      "gate_pass_pct": 58.7,
+      "pcsa_c": 0.854,
+      "pcsa_c_std": 0.026,
+      "pcsa_decision": "SKIP"
+    },
+    "multilingual_de_fr_ru_zh": {
+      "n_layers": 225,
+      "agreement_vs_wikitext_pct": 88.0,
+      "gate_pass_pct": 67.1,
+      "pcsa_c": 0.595,
+      "pcsa_c_std": 0.011,
+      "pcsa_decision": "SKIP"
+    }
+  },
+  "baseline_wikitext_gate_pass_pct": 58.7
+}

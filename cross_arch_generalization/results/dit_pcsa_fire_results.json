@@ -1,0 +1,11 @@
+{
+  "regime": "clustered_K4_classes",
+  "compactness": 0.574,
+  "compactness_std": 0.001,
+  "decision": "SKIP",
+  "cluster_purity": 1.0,
+  "mean_scale_cv": 0.044,
+  "nmse_global": 0.54551,
+  "nmse_pcsa": 0.51501,
+  "pcsa_improvement_pct": 5.59
+}

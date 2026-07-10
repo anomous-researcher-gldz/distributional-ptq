@@ -1,0 +1,8 @@
+{
+  "audio_descriptor_compactness": {
+    "c": 0.668,
+    "std": 0.003,
+    "decision": "SKIP",
+    "n": 160
+  }
+}

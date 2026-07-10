@@ -1,0 +1,153 @@
+{
+  "K": 4,
+  "n_per_regime": 60,
+  "sites": [
+    "model.layers.0.self_attn.q_proj",
+    "model.layers.15.self_attn.q_proj"
+  ],
+  "fire_threshold": 0.4,
+  "A_homogeneous_wikitext": {
+    "mean_pool_paper": {
+      "model.layers.0.self_attn.q_proj": {
+        "c": 0.874,
+        "std": 0.002,
+        "decision": "SKIP",
+        "purity": null
+      },
+      "model.layers.15.self_attn.q_proj": {
+        "c": 0.825,
+        "std": 0.003,
+        "decision": "SKIP",
+        "purity": null
+      }
+    },
+    "last_token_CLS": {
+      "model.layers.0.self_attn.q_proj": {
+        "c": 0.0,
+        "std": 0.0,
+        "decision": "FIRE",
+        "purity": null
+      },
+      "model.layers.15.self_attn.q_proj": {
+        "c": 0.929,
+        "std": 0.002,
+        "decision": "SKIP",
+        "purity": null
+      }
+    },
+    "max_pool": {
+      "model.layers.0.self_attn.q_proj": {
+        "c": 0.975,
+        "std": 0.004,
+        "decision": "SKIP",
+        "purity": null
+      },
+      "model.layers.15.self_attn.q_proj": {
+        "c": 0.946,
+        "std": 0.004,
+        "decision": "SKIP",
+        "purity": null
+      }
+    },
+    "attn_pool": {
+      "model.layers.0.self_attn.q_proj": {
+        "c": 0.885,
+        "std": 0.004,
+        "decision": "SKIP",
+        "purity": null
+      },
+      "model.layers.15.self_attn.q_proj": {
+        "c": 0.889,
+        "std": 0.004,
+        "decision": "SKIP",
+        "purity": null
+      }
+    },
+    "sentence_bert_MiniLM": {
+      "model.layers.0.self_attn.q_proj": {
+        "c": 0.826,
+        "std": 0.002,
+        "decision": "SKIP",
+        "purity": null
+      },
+      "model.layers.15.self_attn.q_proj": {
+        "c": 0.826,
+        "std": 0.002,
+        "decision": "SKIP",
+        "purity": null
+      }
+    }
+  },
+  "B_multidomain": {
+    "mean_pool_paper": {
+      "model.layers.0.self_attn.q_proj": {
+        "c": 0.721,
+        "std": 0.004,
+        "decision": "SKIP",
+        "purity": 1.0
+      },
+      "model.layers.15.self_attn.q_proj": {
+        "c": 0.884,
+        "std": 0.003,
+        "decision": "SKIP",
+        "purity": 0.95
+      }
+    },
+    "last_token_CLS": {
+      "model.layers.0.self_attn.q_proj": {
+        "c": 0.642,
+        "std": 0.004,
+        "decision": "SKIP",
+        "purity": 0.8
+      },
+      "model.layers.15.self_attn.q_proj": {
+        "c": 0.939,
+        "std": 0.002,
+        "decision": "SKIP",
+        "purity": 0.85
+      }
+    },
+    "max_pool": {
+      "model.layers.0.self_attn.q_proj": {
+        "c": 0.902,
+        "std": 0.003,
+        "decision": "SKIP",
+        "purity": 1.0
+      },
+      "model.layers.15.self_attn.q_proj": {
+        "c": 0.914,
+        "std": 0.003,
+        "decision": "SKIP",
+        "purity": 0.783
+      }
+    },
+    "attn_pool": {
+      "model.layers.0.self_attn.q_proj": {
+        "c": 0.642,
+        "std": 0.009,
+        "decision": "SKIP",
+        "purity": 0.983
+      },
+      "model.layers.15.self_attn.q_proj": {
+        "c": 0.919,
+        "std": 0.004,
+        "decision": "SKIP",
+        "purity": 0.683
+      }
+    },
+    "sentence_bert_MiniLM": {
+      "model.layers.0.self_attn.q_proj": {
+        "c": 0.859,
+        "std": 0.002,
+        "decision": "SKIP",
+        "purity": 0.95
+      },
+      "model.layers.15.self_attn.q_proj": {
+        "c": 0.859,
+        "std": 0.002,
+        "decision": "SKIP",
+        "purity": 0.95
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "Q1": {
+    "n_layers": 225,
+    "agreement_pct": 94.2,
+    "gate_pass_wikitext_pct": 57.8,
+    "gate_pass_c4_pct": 63.6
+  },
+  "Q3": {
+    "low_diversity_single_article": {
+      "n": 5,
+      "compactness": 0.823,
+      "std": 0.02,
+      "pcsa_decision": "SKIP"
+    },
+    "medium_many_wikitext_articles": {
+      "n": 40,
+      "compactness": 0.904,
+      "std": 0.005,
+      "pcsa_decision": "SKIP"
+    },
+    "high_wikitext+c4_mix": {
+      "n": 40,
+      "compactness": 0.832,
+      "std": 0.004,
+      "pcsa_decision": "SKIP"
+    }
+  }
+}

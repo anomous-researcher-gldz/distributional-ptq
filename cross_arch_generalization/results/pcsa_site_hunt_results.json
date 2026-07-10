@@ -1,0 +1,80 @@
+{
+  "DiT": {
+    "block0.attn_q": {
+      "c": 0.78,
+      "std": 0.001,
+      "n": 128,
+      "decision": "SKIP"
+    },
+    "block7.attn_q": {
+      "c": 0.72,
+      "std": 0.001,
+      "n": 128,
+      "decision": "SKIP"
+    },
+    "block14.attn_q": {
+      "c": 0.745,
+      "std": 0.001,
+      "n": 128,
+      "decision": "SKIP"
+    },
+    "block21.attn_q": {
+      "c": 0.783,
+      "std": 0.001,
+      "n": 128,
+      "decision": "SKIP"
+    },
+    "block27.attn_q": {
+      "c": 0.817,
+      "std": 0.001,
+      "n": 128,
+      "decision": "SKIP"
+    }
+  },
+  "Whisper": {
+    "enc.block0.q": {
+      "c": 0.467,
+      "std": 0.002,
+      "n": 64,
+      "decision": "SKIP"
+    },
+    "enc.block11.q": {
+      "c": 0.672,
+      "std": 0.007,
+      "n": 64,
+      "decision": "SKIP"
+    },
+    "dec.block0.crossattn_q": {
+      "c": 0.0,
+      "std": 0.0,
+      "n": 64,
+      "decision": "FIRE"
+    },
+    "dec.block11.crossattn_q": {
+      "c": 0.903,
+      "std": 0.003,
+      "n": 64,
+      "decision": "SKIP"
+    }
+  },
+  "CLIP": {
+    "vis.block0.q": {
+      "c": 0.795,
+      "std": 0.004,
+      "n": 400,
+      "decision": "SKIP"
+    },
+    "vis.block12.q": {
+      "c": 0.956,
+      "std": 0.001,
+      "n": 400,
+      "decision": "SKIP"
+    },
+    "vis.block23.q": {
+      "c": 0.952,
+      "std": 0.001,
+      "n": 400,
+      "decision": "SKIP"
+    }
+  }
+}
