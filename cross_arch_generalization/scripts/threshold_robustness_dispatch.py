@@ -7,7 +7,7 @@ Answers, with real numbers already in the repo:
   Q1 -- how stable is the gate under threshold perturbation? Jitter each bound
         +/-20% and measure gate-decision agreement per config.
 """
-import json, glob, os, numpy as np
+import json, glob, os, re, numpy as np
 from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.model_selection import LeaveOneGroupOut, cross_val_predict
 from sklearn.metrics import roc_auc_score
@@ -41,26 +41,44 @@ good = np.isfinite(X).all(1) & np.isfinite(gain)
 X, y_gate, y_gain, g = X[good], gate[good], gain[good], groups[good]
 frac3g = frac3[good]
 
+logo = LeaveOneGroupOut()   # reused by Q4b below
+
 print("="*70)
-print("Q4a  LEARNED DISPATCHER vs HAND-SET GATE")
+print("Q4a  LEARNED DISPATCHER vs HAND-SET GATE (activation gate)")
 print("="*70)
-print(f"Hand-set gate fires on {y_gate.mean()*100:.1f}% of {len(y_gate)} layers.")
-# Leave-one-MODEL-out: train dispatcher on all-but-one architecture, test on held-out
-logo = LeaveOneGroupOut()
-aucs = {}
-for tr, te in logo.split(X, y_gate, g):
-    m = groups[good][te][0]
-    if len(np.unique(y_gate[tr])) < 2 or len(np.unique(y_gate[te])) < 2:
-        aucs[m] = None; continue
-    clf = LogisticRegression(max_iter=2000, class_weight="balanced").fit(X[tr], y_gate[tr])
-    p = clf.predict_proba(X[te])[:,1]
-    aucs[m] = roc_auc_score(y_gate[te], p)
-print("Leave-one-architecture-out AUC (learned dispatcher recovers the gate on a")
-print("held-out family it never saw):")
-for m,a in aucs.items():
-    print(f"   {m:14s}: {'n/a (single class)' if a is None else f'{a:.3f}'}")
-valid=[a for a in aucs.values() if a is not None]
-if valid: print(f"   mean AUC = {np.mean(valid):.3f}")
+# The dispatch target is the ACTIVATION gate (the weight gate fires ~98% and is a
+# degenerate target). Features: {a_frac3, log10(a_kurt), |a_skew|}.
+Xa = np.column_stack([col("a_frac3"), np.log10(np.clip(col("a_kurt"), 1e-3, None)),
+                      np.abs(col("a_skew"))])
+ya = np.array([1 if r.get("a_gate") else 0 for r in rows])
+oka = np.isfinite(Xa).all(1)
+Xa, ya, ga = Xa[oka], ya[oka], groups[oka]
+# Family = architecture; configs sam-b/h/l -> sam, swinir-x2/x3/x4 -> swinir.
+fam = np.array([re.sub(r"-.*", "", m) for m in ga])
+
+def logo_auc(Xf, yf, grp):
+    aucs = {}
+    for tr, te in LeaveOneGroupOut().split(Xf, yf, grp):
+        m = grp[te][0]
+        if len(np.unique(yf[tr])) < 2 or len(np.unique(yf[te])) < 2:
+            aucs[m] = None; continue
+        clf = LogisticRegression(max_iter=2000, class_weight="balanced").fit(Xf[tr], yf[tr])
+        aucs[m] = roc_auc_score(yf[te], clf.predict_proba(Xf[te])[:, 1])
+    v = [a for a in aucs.values() if a is not None]
+    return aucs, (np.mean(v) if v else float("nan"))
+
+print(f"Activation gate fires on {ya.mean()*100:.1f}% of {len(ya)} layers "
+      f"(per-family firing spans {', '.join(sorted(set(fam)))}).")
+# TRUE leave-one-ARCHITECTURE-out: an entire family (all its configs) is held out,
+# so a held-out SAM/SwinIR config never has a sibling scale left in training.
+auc_fam, mean_fam = logo_auc(Xa, ya, fam)
+print("Leave-one-architecture-out AUC (entire family held out, never seen in training):")
+for m, a in auc_fam.items():
+    print(f"   {m:8s}: {'n/a (single class)' if a is None else f'{a:.3f}'}")
+print(f"   mean AUC = {mean_fam:.3f}  over {len(auc_fam)} held-out families")
+# Reference only: leave-one-config-out is looser (sibling scales remain in training).
+_, mean_cfg = logo_auc(Xa, ya, ga)
+print(f"   (reference) leave-one-config-out over {len(set(ga))} configs: mean AUC = {mean_cfg:.3f}")
 
 print()
 print("="*70)
@@ -77,8 +95,8 @@ pred_multi = cross_val_predict(LinearRegression(), X, y_gain, groups=g, cv=logo)
 r_multi,_ = pearsonr(pred_multi, y_gain)
 print(f"Single-feature frac3 -> gain, in-sample Pearson r = {r_line:.3f} "
       f"(paper reports ~0.56 on LLaMA)")
-print(f"Leave-one-architecture-out r, frozen 1-feature line = {r_line_loo:.3f}")
-print(f"Leave-one-architecture-out r, learned 3-feature model = {r_multi:.3f}")
+print(f"Leave-one-config-out r, frozen 1-feature line = {r_line_loo:.3f}")
+print(f"Leave-one-config-out r, learned 3-feature model = {r_multi:.3f}")
 
 print()
 print("="*70)

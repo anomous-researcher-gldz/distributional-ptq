@@ -14,7 +14,7 @@ reviewer question.
 | Calibration-set robustness (WikiText↔C4) | `q1_q3_llama.py` | `q1_q3_results.json` | 94.2% fire/skip agreement over 225 layers |
 | Compactness vs prompt diversity | `q1_q3_llama.py`, `q3_v2_diversity.py` | `q1_q3_results.json`, `q3_v2_results.json` | PCSA site stays SKIP as diversity rises |
 | New-family diagnostic (gate-pass) | `q2_newfamily_diagnostic.py` | `q2_results.json` | gate tracks kurtosis, not architecture |
-| Threshold robustness (±20%, 200 draws) | `threshold_robustness_dispatch.py` | (stdout / S4 layer json) | 93.9% decisions unchanged; AUC 0.957 |
+| Threshold robustness (±20%, 200 draws) | `threshold_robustness_dispatch.py` | (stdout / S4 layer json) | 93.9% decisions unchanged; activation-gate leave-one-architecture-out AUC 0.962 (4 families), 0.957 leave-one-config-out (8 configs) |
 | **Random seeds + instruction/multilingual shift** | `seed_and_shift.py` | `seed_and_shift_results.json` | gate-pass 63.1%±1.3; shift agreement 88–96% |
 | **PCSA descriptor ablation** (SQ6q W4) | `descriptor_ablation.py` | `descriptor_ablation_results.json` | 19/20 cells agree; gate not descriptor-sensitive |
 | PCSA site hunt across models | `pcsa_site_hunt.py`, `*_pcsa*.py` | `pcsa_site_hunt_results.json`, `*_pcsa_*results.json` | Whisper dec cross-attn fires (c=0.0), rest SKIP |
