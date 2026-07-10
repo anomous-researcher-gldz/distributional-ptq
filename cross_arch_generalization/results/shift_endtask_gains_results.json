@@ -1,0 +1,60 @@
+{
+  "bits": 3,
+  "alpha": 0.25,
+  "windows": 40,
+  "ppl": {
+    "FP": {
+      "wikitext2": 5.912,
+      "c4": 9.175,
+      "code": 2.015,
+      "multilingual": 10.971,
+      "instruction": 6.378
+    },
+    "RTN": {
+      "wikitext2": 141265.797,
+      "c4": 18958.361,
+      "code": 493355.344,
+      "multilingual": 991556.875,
+      "instruction": 50206.617
+    },
+    "RTN+DBAF": {
+      "wikitext2": 472.163,
+      "c4": 530.142,
+      "code": 111.619,
+      "multilingual": 3088.829,
+      "instruction": 397.216
+    }
+  },
+  "gain": {
+    "wikitext2": {
+      "rtn": 141265.797,
+      "dbaf": 472.163,
+      "reduction_x": 299.2,
+      "improved": true
+    },
+    "c4": {
+      "rtn": 18958.361,
+      "dbaf": 530.142,
+      "reduction_x": 35.8,
+      "improved": true
+    },
+    "code": {
+      "rtn": 493355.344,
+      "dbaf": 111.619,
+      "reduction_x": 4420.0,
+      "improved": true
+    },
+    "multilingual": {
+      "rtn": 991556.875,
+      "dbaf": 3088.829,
+      "reduction_x": 321.0,
+      "improved": true
+    },
+    "instruction": {
+      "rtn": 50206.617,
+      "dbaf": 397.216,
+      "reduction_x": 126.4,
+      "improved": true
+    }
+  }
+}
