@@ -153,7 +153,7 @@ def aggregate_crossdetector():
         "\\bottomrule",
         "\\end{tabular}",
         "\\caption{Status snapshot of the cross-detector matrix.  YOLOX column "
-        "is complete (two cells reproduced from~\\citet{Zeinali2025AHCPTQ} Table~4, "
+        "is complete (two cells reproduced from~\\citet{Zeinali2026CompSRT} Table~4, "
         "SAM-H reproduced in this work). H-DETR column is in the remote queue.}",
         "\\label{tab:crossdetector-status}",
         "\\end{table}",
