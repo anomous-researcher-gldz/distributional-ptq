@@ -19,6 +19,7 @@ reviewer question.
 | **PCSA descriptor ablation** (SQ6q W4) | `descriptor_ablation.py` | `descriptor_ablation_results.json` | 19/20 cells agree; gate not descriptor-sensitive |
 | PCSA site hunt across models | `pcsa_site_hunt.py`, `*_pcsa*.py` | `pcsa_site_hunt_results.json`, `*_pcsa_*results.json` | Whisper dec cross-attn fires (c=0.0), rest SKIP |
 | Flagship DBAF end-to-end (new families) | `clip_flagship.py`, `whisper_flagship.py`, `dit_flagship.py`, `dit_fid.py` | `*_flagship_results.json` (α=0.75), `*_a025_results.json` (α=0.25) | CLIP 61.8→71.5, Whisper W3 135.8→17.3 |
+| **End-task gains under shift (W4A4 headline regime)** | `shift_endtask_w4a4.py` | `shift_endtask_w4a4_results.json` | DBAF recovers PPL to near-FP on all 5 shifts (WikiText 844→17.3, C4 805→24.6, code 420→4.8, multiling 1685→44.9, instr 732→18.3; α=0.25 frozen; reproduces paper 970→16.3) |
 | **End-task gains under shift** (W3 wt-only) | `shift_endtask_gains.py` | `shift_endtask_gains_results.json` | DBAF improves PPL on all 5 shifts (WikiText 141k→472, C4 19k→530, code 493k→112, multiling 992k→3089, instr 50k→397; α=0.25 frozen) |
 | **α selection sweep (paper's rule)** | `alpha_sweep_{clip,whisper,dit}.py` | `alpha_sweep_*_results.json` | recon sweep selects α≈0.25–0.3 for discriminative families |
 | **Why reconstruction α-selection fails on DiT** | `alpha_dit_diagnosis.py` | `alpha_dit_diagnosis_results.json` | single-pass proxy ≠ generative FID (see below) |
