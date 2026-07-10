@@ -49,7 +49,7 @@ cd ..
 
 ### 1.2 Prepare Dataset
 
-Download the [COCO](https://drive.google.com/file/d/1j92XnlzQZwPff2sP_nwU3LE9Npemkn7Q/view?usp=sharing) dataset:
+Download the COCO (link withheld for anonymous review) dataset:
 
 ```
 ├── data
@@ -66,13 +66,13 @@ Save to `ckpt/`:
 
 | Model       | Download |
 |-------------|----------|
-| SAM-B       | [Link](https://drive.google.com/file/d/1UlwYWVRsS4SbSPDXlR5_dVmcuqT8CzeI/view?usp=sharing) |
-| SAM-L       | [Link](https://drive.google.com/file/d/14MBHh7OFwY8EpaGkX6ZyjUAw83wywk7U/view?usp=sharing) |
-| SAM-H       | [Link](https://drive.google.com/file/d/1fMJyX938_H17OxfVq6PQZ_ef9TBy5r36/view?usp=sharing) |
-| Faster-RCNN | [Link](https://drive.google.com/file/d/1RKTLk07E4apoRzwoeQbnaY8ZxEX1SlbG/view?usp=sharing) |
-| YOLOX       | [Link](https://drive.google.com/file/d/1FQeKOaDJzwqXq4zz8-VHJbn6iKFT4HLt/view?usp=sharing) |
-| HDETR       | [Link](https://drive.google.com/file/d/1i7iMAicmoif8tUbuHEntVtmEsJrpXTZ4/view?usp=sharing) |
-| DINO        | [Link](https://drive.google.com/file/d/1DDHkZcVI9TwmN9vqEYXFBjRZVsBK4yLO/view?usp=sharing) |
+| SAM-B       | Link (link withheld for anonymous review) |
+| SAM-L       | Link (link withheld for anonymous review) |
+| SAM-H       | Link (link withheld for anonymous review) |
+| Faster-RCNN | Link (link withheld for anonymous review) |
+| YOLOX       | Link (link withheld for anonymous review) |
+| HDETR       | Link (link withheld for anonymous review) |
+| DINO        | Link (link withheld for anonymous review) |
 
 ### 1.4 Run Experiments
 
@@ -239,10 +239,10 @@ pip install -v --no-build-isolation mamba_ssm==1.0.1
 
 Download and place in `CompSRT/datasets/`:
 
-* [Training set (DF2K)](https://drive.google.com/file/d/1TubDkirxl4qAWelfOnpwaSKoj3KLAIG4/view?usp=share_link)
-* [Testing set](https://drive.google.com/file/d/1yMbItvFKVaCT93yPWmlP3883XtJ-wSee/view?usp=sharing)
-* [Calibration data](https://drive.google.com/file/d/1UxgyQWrToZHxsMrPursuMBtyCcNjFwUA/view?usp=drive_link)
-* [Pretrained models](https://drive.google.com/file/d/12g_64n-hhJJbvd6cpU7VakxruGRpzhP-/view?usp=drive_link)
+* Training set (DF2K) (link withheld for anonymous review)
+* Testing set (link withheld for anonymous review)
+* Calibration data (link withheld for anonymous review)
+* Pretrained models (link withheld for anonymous review)
 
 ### 3.3 Run Experiments
 

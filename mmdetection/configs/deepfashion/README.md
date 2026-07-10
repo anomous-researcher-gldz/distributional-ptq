@@ -16,7 +16,7 @@ Recent advances in clothes recognition have been driven by the construction of c
 
 [MMFashion](https://github.com/open-mmlab/mmfashion) develops "fashion parsing and segmentation" module
 based on the dataset
-[DeepFashion-Inshop](https://drive.google.com/drive/folders/0B7EVK8r0v71pVDZFQXRsMDZCX1E?usp=sharing).
+DeepFashion-Inshop (link withheld for anonymous review).
 Its annotation follows COCO style.
 To use it, you need to first download the data. Note that we only use "img_highres" in this task.
 The file tree should be like this:

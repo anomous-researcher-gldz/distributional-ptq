@@ -356,7 +356,7 @@ Expected: versions print without errors.
 Download from the Google Drive link in the README and extract:
 ```bash
 mkdir -p /home/unifying-ptq/data/coco
-# Download https://drive.google.com/file/d/1j92XnlzQZwPff2sP_nwU3LE9Npemkn7Q/view?usp=sharing
+# Download [link withheld for anonymous review]
 # Extract so structure is:
 # data/coco/annotations/instances_train2017.json
 # data/coco/annotations/instances_val2017.json  

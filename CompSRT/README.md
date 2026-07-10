@@ -65,11 +65,11 @@ singularity build compsrt_image.sif docker-archive:path/to/compsrt_image.tar
 ## Datasets
 Download:
 
-   * [Training set (DF2K)](https://drive.google.com/file/d/1TubDkirxl4qAWelfOnpwaSKoj3KLAIG4/view?usp=share_link) and place them in `datasets/`
-   * [Testing set](https://drive.google.com/file/d/1yMbItvFKVaCT93yPWmlP3883XtJ-wSee/view?usp=sharing) and place them in `datasets/`
-   * [Calibration data](https://drive.google.com/file/d/1UxgyQWrToZHxsMrPursuMBtyCcNjFwUA/view?usp=drive_link)  
-   * [Pretrained models](https://drive.google.com/file/d/12g_64n-hhJJbvd6cpU7VakxruGRpzhP-/view?usp=drive_link) 
-   * [weights_and_activations](https://drive.google.com/file/d/1S9Vi8IyjmCY3ymmanyEDSDVY7MHAHRm5/view?usp=share_link) 
+   * Training set (DF2K) (link withheld for anonymous review) and place them in `datasets/`
+   * Testing set (link withheld for anonymous review) and place them in `datasets/`
+   * Calibration data (link withheld for anonymous review)  
+   * Pretrained models (link withheld for anonymous review) 
+   * weights_and_activations (link withheld for anonymous review) 
 
 Weights and activations data is for running the statistical analysis for pre/post Hadamard transformation for the x2 model. 
 
