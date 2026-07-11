@@ -7,6 +7,47 @@ claims (breadth, calibration protocol, robustness, generalization). Nothing here
 contradicts the submitted paper; every run confirms a submitted claim or answers a
 reviewer question.
 
+## How to run
+
+All scripts are run from the **repo root** with no CLI arguments — knobs (e.g.
+`alpha=`, target model) are set in-file near the top of each script. Each writes a
+JSON to `cross_arch_generalization/results/`. Scripts currently assume the repo lives
+at `/home/ubuntu/distributional-ptq`; if yours is elsewhere, adjust the `BASE` /
+input paths at the top of the script.
+
+```bash
+cd /path/to/distributional-ptq
+python cross_arch_generalization/scripts/<name>.py     # -> results/<name>_results.json
+```
+
+**Two tiers of reproduction:**
+
+1. **Zero-GPU (seconds, no model download).** These recompute the headline
+   robustness / diagnostic numbers directly from the committed per-layer statistics
+   in `results/S4-cross-model-layer-analysis/*.json` — nothing else needed:
+   ```bash
+   pip install numpy scikit-learn scipy
+   python cross_arch_generalization/scripts/threshold_robustness_dispatch.py
+   #   -> threshold_robustness_results.json : jitter 93.9%/min 73.9%/p5 77.4%,
+   #      leave-one-architecture-out AUC 0.962 (0.93-0.99), balance 36.5/63.5
+   python cross_arch_generalization/scripts/w3_alpha_gap.py
+   ```
+
+2. **GPU (loads a model).** Every other script downloads/loads its model
+   (LLaMA-3-8B, Qwen-2.5-7B, CLIP-ViT-L/14, Whisper-small, DiT-XL, SAM) and runs a
+   weight-only RTN host. Use the `flatquant` conda env from the top-level
+   [`README.md`](../README.md#21-installation) (torch + transformers), plus
+   `pip install diffusers` for `dit_*.py` and `open_clip_torch` for `clip_*.py`.
+   Example:
+   ```bash
+   conda activate flatquant
+   python cross_arch_generalization/scripts/rotation_control.py   # RTN 2x2 rotation control
+   python cross_arch_generalization/scripts/clip_flagship.py      # CLIP W4 DBAF
+   ```
+   Flagship scripts default to `alpha=0.25` (the `*_a025_results.json`); set
+   `alpha=0.75` in-file to regenerate the `*_results.json`. See "Notes on
+   reproduction" below.
+
 ## Reviewer question → script → result
 
 | Reviewer ask | Script | Result JSON | Headline |
