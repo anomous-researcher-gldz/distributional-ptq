@@ -1,0 +1,58 @@
+{
+  "model": "SAM-B",
+  "site": "mask_decoder.cross_attn_token_to_image.q_proj (both layers)",
+  "metric": "permute-dims compactness (paper's exact), K=4, fire iff c<=0.4",
+  "paper_reported": 0.189,
+  "descriptors": [
+    "mean",
+    "last",
+    "max",
+    "attn"
+  ],
+  "protocol_A_synthetic": {
+    "mean": {
+      "c": 0.184,
+      "std": 0.005,
+      "decision": "FIRE"
+    },
+    "last": {
+      "c": 0.181,
+      "std": 0.003,
+      "decision": "FIRE"
+    },
+    "max": {
+      "c": 0.273,
+      "std": 0.005,
+      "decision": "FIRE"
+    },
+    "attn": {
+      "c": 0.314,
+      "std": 0.006,
+      "decision": "FIRE"
+    }
+  },
+  "protocol_B_real_coco": {
+    "mean": {
+      "c": 0.396,
+      "std": 0.007,
+      "decision": "FIRE"
+    },
+    "last": {
+      "c": 0.252,
+      "std": 0.004,
+      "decision": "FIRE"
+    },
+    "max": {
+      "c": 0.191,
+      "std": 0.003,
+      "decision": "FIRE"
+    },
+    "attn": {
+      "c": 0.286,
+      "std": 0.009,
+      "decision": "FIRE"
+    }
+  },
+  "A_all_fire": true,
+  "B_all_fire": true
+}

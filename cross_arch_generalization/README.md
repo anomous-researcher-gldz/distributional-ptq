@@ -44,6 +44,19 @@ python cross_arch_generalization/scripts/<name>.py     # -> results/<name>_resul
    python cross_arch_generalization/scripts/rotation_control.py   # RTN 2x2 rotation control
    python cross_arch_generalization/scripts/clip_flagship.py      # CLIP W4 DBAF
    ```
+
+   The **SAM positive/FIRE-site descriptor ablation** (`sam_descriptor_ablation.py`,
+   SQ6q W4) additionally needs the public SAM-B checkpoint and COCO val2017. Point
+   `SAM_WS` at a directory containing both, then run:
+   ```bash
+   pip install segment-anything pycocotools scikit-image
+   # SAM_WS/sam_vit_b.pth       <- https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth
+   # SAM_WS/coco/val2017/       and
+   # SAM_WS/coco/annotations/instances_val2017.json  <- https://cocodataset.org/#download
+   SAM_WS=/path/to/samdata python cross_arch_generalization/scripts/sam_descriptor_ablation.py
+   #   -> sam_descriptor_ablation_results.json : all 4 poolings FIRE (c<=0.4) at the
+   #      SAM-B mask-decoder cross-attn q site, both synthetic (paper c=0.189) and real-COCO
+   ```
    Flagship scripts default to `alpha=0.25` (the `*_a025_results.json`); set
    `alpha=0.75` in-file to regenerate the `*_results.json`. See "Notes on
    reproduction" below.
@@ -57,7 +70,8 @@ python cross_arch_generalization/scripts/<name>.py     # -> results/<name>_resul
 | New-family diagnostic (gate-pass) | `q2_newfamily_diagnostic.py` | `q2_results.json` | gate tracks kurtosis, not architecture |
 | Threshold robustness (±20%, 200 draws) | `threshold_robustness_dispatch.py` | `threshold_robustness_results.json` | 93.9% decisions unchanged (min 73.9%, p5 77.4%); activation-gate leave-one-architecture-out AUC 0.962 (4 families: 0.93–0.99), 0.957 leave-one-config-out (8 configs); class balance 36.5% FIRE / 63.5% SKIP |
 | **Random seeds + instruction/multilingual shift** | `seed_and_shift.py` | `seed_and_shift_results.json` | gate-pass 63.1%±1.3; shift agreement 88–96% |
-| **PCSA descriptor ablation** (SQ6q W4) | `descriptor_ablation.py` | `descriptor_ablation_results.json` | 19/20 cells agree; gate not descriptor-sensitive |
+| **PCSA descriptor ablation — SKIP site** (SQ6q W4) | `descriptor_ablation.py` | `descriptor_ablation_results.json` | LLaMA q_proj: 19/20 cells agree; gate not descriptor-sensitive |
+| **PCSA descriptor ablation — FIRE site** (SQ6q W4) | `sam_descriptor_ablation.py` | `sam_descriptor_ablation_results.json` | SAM-B mask-decoder FIRE site: all 4 poolings (mean/last/max/attn) fire (c=0.18–0.40, synthetic + real-COCO); decision descriptor-robust |
 | PCSA site hunt across models | `pcsa_site_hunt.py`, `*_pcsa*.py` | `pcsa_site_hunt_results.json`, `*_pcsa_*results.json` | Whisper dec cross-attn fires (c=0.0), rest SKIP |
 | Flagship DBAF end-to-end (new families) | `clip_flagship.py`, `whisper_flagship.py`, `dit_flagship.py`, `dit_fid.py` | `*_flagship_results.json` (α=0.75), `*_a025_results.json` (α=0.25) | CLIP W4 61.8→71.2 (forced DBAF, α=0.25), Whisper W3 135.8→17.3 |
 | **End-task gains under shift (W4A4 headline regime)** | `shift_endtask_w4a4.py` | `shift_endtask_w4a4_results.json` | DBAF recovers PPL to near-FP on all 5 shifts (WikiText 844→17.3, C4 805→24.6, code 420→4.8, multiling 1685→44.9, instr 732→18.3; α=0.25 frozen; reproduces paper 970→16.3) |
