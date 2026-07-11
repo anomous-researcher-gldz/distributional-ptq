@@ -65,11 +65,11 @@ singularity build compsrt_image.sif docker-archive:path/to/compsrt_image.tar
 ## Datasets
 Download:
 
-   * Training set (DF2K) (link withheld for anonymous review) and place them in `datasets/`
-   * Testing set (link withheld for anonymous review) and place them in `datasets/`
-   * Calibration data (link withheld for anonymous review)  
-   * Pretrained models (link withheld for anonymous review) 
-   * weights_and_activations (link withheld for anonymous review) 
+   * Training set (DF2K): [DIV2K](https://data.vision.ee.ethz.ch/cvl/DIV2K/) + Flickr2K (public); place in `datasets/`
+   * Testing set: standard SR benchmarks (Set5/Set14/BSD100/Urban100/Manga109), public — e.g. via [BasicSR](https://github.com/XPixelGroup/BasicSR); place in `datasets/`
+   * Calibration data: regenerate from DF2K with `basicsr/getcalidata.py` (no separate download)
+   * Pretrained models: official [SwinIR](https://github.com/JingyunLiang/SwinIR) lightweight-SR checkpoints
+   * weights_and_activations: regenerate with the analysis script (statistics only; no separate download)
 
 Weights and activations data is for running the statistical analysis for pre/post Hadamard transformation for the x2 model. 
 

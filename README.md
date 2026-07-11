@@ -49,7 +49,7 @@ cd ..
 
 ### 1.2 Prepare Dataset
 
-Download the COCO (link withheld for anonymous review) dataset:
+Download the [COCO](https://cocodataset.org/#download) dataset (2017 train/val + annotations):
 
 ```
 ├── data
@@ -66,13 +66,19 @@ Save to `ckpt/`:
 
 | Model       | Download |
 |-------------|----------|
-| SAM-B       | Link (link withheld for anonymous review) |
-| SAM-L       | Link (link withheld for anonymous review) |
-| SAM-H       | Link (link withheld for anonymous review) |
-| Faster-RCNN | Link (link withheld for anonymous review) |
-| YOLOX       | Link (link withheld for anonymous review) |
-| HDETR       | Link (link withheld for anonymous review) |
-| DINO        | Link (link withheld for anonymous review) |
+| SAM-B       | https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth (official Meta) |
+| SAM-L       | https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth (official Meta) |
+| SAM-H       | https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth (official Meta) |
+| Faster-RCNN | mmdetection model zoo (public) |
+| YOLOX       | mmdetection model zoo (public) |
+| HDETR       | H-Deformable-DETR release / mmdet (public) |
+| DINO        | DINO (detection) release / mmdet (public) |
+
+The three SAM checkpoints are the official Meta releases (`facebookresearch/segment-anything`).
+The four SAM-prompting detectors are standard public checkpoints; the exact model
+configs are in `projects/instance_segment_anything/`, and downloads are in the
+[mmdetection model zoo](https://mmdetection.readthedocs.io/en/latest/model_zoo.html)
+and the Instance-Segment-Anything project on which that directory is based.
 
 ### 1.4 Run Experiments
 
@@ -239,10 +245,10 @@ pip install -v --no-build-isolation mamba_ssm==1.0.1
 
 Download and place in `CompSRT/datasets/`:
 
-* Training set (DF2K) (link withheld for anonymous review)
-* Testing set (link withheld for anonymous review)
-* Calibration data (link withheld for anonymous review)
-* Pretrained models (link withheld for anonymous review)
+* Training set (DF2K): [DIV2K](https://data.vision.ee.ethz.ch/cvl/DIV2K/) + Flickr2K (public) — the standard DF2K super-resolution training set
+* Testing set: standard SR benchmarks (Set5, Set14, BSD100, Urban100, Manga109), public — e.g. via [BasicSR](https://github.com/XPixelGroup/BasicSR)
+* Calibration data: regenerate from DF2K with `CompSRT/basicsr/getcalidata.py` (no separate download needed)
+* Pretrained models: official [SwinIR](https://github.com/JingyunLiang/SwinIR) lightweight-SR checkpoints (e.g. `002_lightweightSR_DIV2K_*_SwinIR-S_x{2,3,4}.pth`)
 
 ### 3.3 Run Experiments
 
