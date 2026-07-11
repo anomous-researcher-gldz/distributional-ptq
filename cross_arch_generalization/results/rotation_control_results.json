@@ -1,0 +1,15 @@
+{
+  "model": "NousResearch/Meta-Llama-3-8B",
+  "w_bits": 4,
+  "a_bits": 4,
+  "alpha": 0.25,
+  "windows": 16,
+  "rotation": "seeded random orthogonal per d_in",
+  "ppl": {
+    "FP": 6.353,
+    "RTN": 854.059,
+    "RTN+rot": 13.768,
+    "RTN+DBAF": 16.93,
+    "RTN+rot+DBAF": 10.41
+  }
+}
