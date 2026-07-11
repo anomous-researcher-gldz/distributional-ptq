@@ -11,9 +11,11 @@ tight -> low compactness -> PCSA predicted to FIRE. This is the one new family
 where the compactness gate should fire (positive prediction).
 """
 import sys, copy, json
+import os as _os_repo
+_REPO_ROOT = _os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.abspath(__file__))))
 import numpy as np, torch, torch.nn as nn, torch.nn.functional as F
 torch.set_grad_enabled(False)
-REPO="/home/ubuntu/distributional-ptq"; sys.path.insert(0,REPO); sys.path.insert(0,REPO+"/FlatQuant")
+REPO=_REPO_ROOT; sys.path.insert(0,REPO); sys.path.insert(0,REPO+"/FlatQuant")
 from flatquant.baselines.rtn import _quantize_tensor_uniform, _quantize_per_channel_with_dbaf
 DEV="cuda"
 ALPHA = float(sys.argv[1]) if len(sys.argv) > 1 else 0.25   # `python dit_flagship.py [alpha]`
@@ -99,6 +101,6 @@ print(f"\n[DiT] PCSA-site compactness (block0 attn q, class-conditioned): "
       f"c={c:.3f}±{cs:.3f} -> {'FIRE' if c<=0.4 else 'SKIP'}",flush=True)
 
 _tag = "_a025" if abs(ALPHA-0.25)<1e-9 else ""
-out=f"/home/ubuntu/distributional-ptq/cross_arch_generalization/results/dit_flagship{_tag}_results.json"
+out=f"{_REPO_ROOT}/cross_arch_generalization/results/dit_flagship{_tag}_results.json"
 json.dump(results,open(out,"w"),indent=2)
 print(f"\nSaved -> {out}\n{json.dumps(results,indent=2)}")

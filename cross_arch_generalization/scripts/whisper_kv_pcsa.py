@@ -10,10 +10,12 @@ we additionally run KV-PCSA-tf end-to-end (per-cluster cross-attn K/V scales) an
 report the WER delta. If not, we report self-disable honestly.
 """
 import sys, io, json
+import os as _os_repo
+_REPO_ROOT = _os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.abspath(__file__))))
 import numpy as np, torch, torch.nn as nn, torch.nn.functional as F
 torch.set_grad_enabled(False); DEV="cuda"
 import soundfile as sf, jiwer, re, string
-sys.path.insert(0,"/home/ubuntu/distributional-ptq"); sys.path.insert(0,"/home/ubuntu/distributional-ptq/FlatQuant")
+sys.path.insert(0,_REPO_ROOT); sys.path.insert(0,_REPO_ROOT + "/FlatQuant")
 from flatquant.baselines.pcsa_tf import fit_pcsa_tf, apply_pcsa_tf_to_activation
 from transformers import WhisperForConditionalGeneration, WhisperProcessor
 from datasets import load_dataset, Audio

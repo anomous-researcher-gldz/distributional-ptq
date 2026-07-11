@@ -199,7 +199,8 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--scale", type=int, default=2)
     p.add_argument("--pretrained", required=True, help="SwinIR-x{scale} checkpoint .pth")
-    p.add_argument("--dataset", default="/home/ubuntu/unifying-ptq/data/sr_testsets/Set5/Set5_HR")
+    p.add_argument("--dataset", required=True,
+                   help="HR test-set dir, e.g. CompSRT/datasets/Set5/Set5_HR")
     p.add_argument("--lr-subdir", default=None, help="If given, LR image dir; else bicubic-downsample HR")
     p.add_argument("--bits", type=int, default=4)
     p.add_argument("--use-dbaf", action="store_true")

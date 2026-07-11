@@ -28,6 +28,8 @@ Claims under test:
        measuring structure, not an artefact of mean-pooling.
 """
 import sys, os, glob, gc, json
+import os as _os_repo
+_REPO_ROOT = _os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.abspath(__file__))))
 import numpy as np, torch, torch.nn as nn, torch.nn.functional as F
 torch.set_grad_enabled(False)
 
@@ -83,7 +85,7 @@ def c4(n):
     return out
 def code(n):
     # genuinely distinct domain: python source from the local repo
-    files = glob.glob("/home/ubuntu/distributional-ptq/**/*.py", recursive=True)
+    files = glob.glob(_REPO_ROOT + "/**/*.py", recursive=True)
     out = []
     for f in sorted(files):
         try:

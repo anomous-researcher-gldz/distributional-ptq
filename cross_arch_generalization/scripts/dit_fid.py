@@ -7,9 +7,11 @@ distribution is closer to full precision. Self-contained (no external ImageNet
 reference needed). Complements the per-step NMSE deviation-from-FP proxy.
 """
 import sys, os, shutil, json, subprocess
+import os as _os_repo
+_REPO_ROOT = _os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.abspath(__file__))))
 import numpy as np, torch, torch.nn as nn
 torch.set_grad_enabled(False); DEV="cuda"
-sys.path.insert(0,"/home/ubuntu/distributional-ptq"); sys.path.insert(0,"/home/ubuntu/distributional-ptq/FlatQuant")
+sys.path.insert(0,_REPO_ROOT); sys.path.insert(0,_REPO_ROOT + "/FlatQuant")
 from flatquant.baselines.rtn import _quantize_tensor_uniform, _quantize_per_channel_with_dbaf
 from diffusers import DiTPipeline, DPMSolverMultistepScheduler
 from PIL import Image
@@ -70,5 +72,5 @@ pipe.transformer.load_state_dict(orig)
 
 results["N"]=N; results["steps"]=STEPS; results["alpha"]=ALPHA
 _tag = "_a025" if abs(ALPHA-0.25)<1e-9 else ""
-json.dump(results,open(f"/home/ubuntu/distributional-ptq/cross_arch_generalization/results/dit_fid{_tag}_results.json","w"),indent=2)
+json.dump(results,open(f"{_REPO_ROOT}/cross_arch_generalization/results/dit_fid{_tag}_results.json","w"),indent=2)
 print(f"\n{json.dumps(results,indent=2)}\nsaved.")

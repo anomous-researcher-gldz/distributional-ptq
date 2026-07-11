@@ -13,14 +13,16 @@ Claim under test: RTN collapses on every distribution and DBAF recovers it on ev
 distribution -- the end-task gain, not merely the dispatch decision, generalizes.
 """
 import sys, glob, torch, torch.nn as nn, json
-sys.path.insert(0, "/home/ubuntu/distributional-ptq"); sys.path.insert(0, "/home/ubuntu/distributional-ptq/FlatQuant")
+import os as _os_repo
+_REPO_ROOT = _os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.abspath(__file__))))
+sys.path.insert(0, _REPO_ROOT); sys.path.insert(0, _REPO_ROOT + "/FlatQuant")
 from flatquant.baselines.rtn import _quantize_tensor_uniform, _quantize_per_channel_with_dbaf
 from flatquant.eval_utils import ppl_eval
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import datasets
 torch.set_grad_enabled(False)
 M = "NousResearch/Meta-Llama-3-8B"; BITS = 3; ALPHA = 0.25; WINDOWS = 40; SEQ = 2048
-OUT = "/home/ubuntu/distributional-ptq/cross_arch_generalization/results/shift_endtask_gains_results.json"
+OUT = _REPO_ROOT + "/cross_arch_generalization/results/shift_endtask_gains_results.json"
 tok = AutoTokenizer.from_pretrained(M)
 model = AutoModelForCausalLM.from_pretrained(M, torch_dtype=torch.float16).cuda().eval()
 orig = {k: v.clone() for k, v in model.state_dict().items()}
@@ -42,7 +44,7 @@ def corpora():
         if sum(len(x) for x in buf) > 600_000: break
     out["c4"] = enc_of("\n\n".join(buf))
     code = []
-    for f in sorted(glob.glob("/home/ubuntu/distributional-ptq/**/*.py", recursive=True)):
+    for f in sorted(glob.glob(_REPO_ROOT + "/**/*.py", recursive=True)):
         try: code.append(open(f).read())
         except Exception: pass
         if sum(len(x) for x in code) > 600_000: break

@@ -8,12 +8,14 @@ Answers, with real numbers already in the repo:
         +/-20% and measure gate-decision agreement per config.
 """
 import json, glob, os, re, numpy as np
+import os as _os_repo
+_REPO_ROOT = _os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.abspath(__file__))))
 from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.model_selection import LeaveOneGroupOut, cross_val_predict
 from sklearn.metrics import roc_auc_score
 from scipy.stats import pearsonr
 
-BASE = "/home/ubuntu/distributional-ptq/results/S4-cross-model-layer-analysis"
+BASE = _REPO_ROOT + "/results/S4-cross-model-layer-analysis"
 files = sorted(glob.glob(os.path.join(BASE, "*.json")))
 files = [f for f in files if os.path.basename(f) != "summary.json"]
 

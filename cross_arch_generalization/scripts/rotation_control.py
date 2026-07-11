@@ -22,9 +22,11 @@ collapse, DBAF alone rescues it, and rotation+DBAF is no better than rotation al
 absent.
 """
 import sys, gc, json
+import os as _os_repo
+_REPO_ROOT = _os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.abspath(__file__))))
 import torch, torch.nn as nn
-sys.path.insert(0, "/home/ubuntu/distributional-ptq")
-sys.path.insert(0, "/home/ubuntu/distributional-ptq/FlatQuant")
+sys.path.insert(0, _REPO_ROOT)
+sys.path.insert(0, _REPO_ROOT + "/FlatQuant")
 from flatquant.baselines.rtn import _quantize_tensor_uniform, _quantize_per_channel_with_dbaf
 from flatquant.baselines.act_quant import (_quantize_per_token, _dbaf_fold_per_token,
                                            _dbaf_unfold_per_token, apply_w4a4_act_quant)
@@ -39,7 +41,7 @@ ALPHA = 0.25
 WINDOWS = 16
 SEQ = 2048
 SEED = 0
-OUT = "/home/ubuntu/distributional-ptq/cross_arch_generalization/results/rotation_control_results.json"
+OUT = _REPO_ROOT + "/cross_arch_generalization/results/rotation_control_results.json"
 
 tok = AutoTokenizer.from_pretrained(M)
 class Enc:

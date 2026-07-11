@@ -11,7 +11,9 @@ Sanity target: on WikiText the RTN W4A4 host should collapse to ~10^3 PPL and
 the SAME recovery holds on C4 / code / multilingual / instruction.
 """
 import sys, glob, gc, json, torch, torch.nn as nn
-sys.path.insert(0, "/home/ubuntu/distributional-ptq"); sys.path.insert(0, "/home/ubuntu/distributional-ptq/FlatQuant")
+import os as _os_repo
+_REPO_ROOT = _os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.abspath(__file__))))
+sys.path.insert(0, _REPO_ROOT); sys.path.insert(0, _REPO_ROOT + "/FlatQuant")
 from flatquant.baselines.rtn import _quantize_tensor_uniform, _quantize_per_channel_with_dbaf
 from flatquant.baselines.act_quant import apply_w4a4_act_quant
 from flatquant.eval_utils import ppl_eval
@@ -19,7 +21,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 import datasets
 torch.set_grad_enabled(False)
 M = "NousResearch/Meta-Llama-3-8B"; WBITS = ABITS = 4; ALPHA = 0.25; WINDOWS = 24; SEQ = 2048
-OUT = "/home/ubuntu/distributional-ptq/cross_arch_generalization/results/shift_endtask_w4a4_results.json"
+OUT = _REPO_ROOT + "/cross_arch_generalization/results/shift_endtask_w4a4_results.json"
 tok = AutoTokenizer.from_pretrained(M)
 
 class Enc:
@@ -38,7 +40,7 @@ def corpora():
         if sum(len(x) for x in buf) > 500_000: break
     out["c4"] = enc_of("\n\n".join(buf))
     code = []
-    for f in sorted(glob.glob("/home/ubuntu/distributional-ptq/**/*.py", recursive=True)):
+    for f in sorted(glob.glob(_REPO_ROOT + "/**/*.py", recursive=True)):
         try: code.append(open(f).read())
         except Exception: pass
         if sum(len(x) for x in code) > 500_000: break

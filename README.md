@@ -286,10 +286,38 @@ results use dedicated drivers under `scripts/`:
 | Training-free SAM-B + DBAF | `scripts/run_training_free_sam.py` |
 | SAM-B +4.8 mAP (AHCPTQ+DBAF+PCSA) | §1 (`ahcptq/solver/test_quant.py`) |
 
-The cross-architecture generalization study (rotation ±DBAF 2×2, CLIP/Whisper/DiT,
-random seeds, distribution shift, PCSA compactness site-hunt, and descriptor ablation)
-is under `cross_arch_generalization/scripts/`, with the computed result JSONs committed
-in `cross_arch_generalization/results/`.
+**How to run the training-free drivers** (use the `flatquant` env from §2.1 for LLM
+targets, the `ahcptq` env from §1.1 for SAM):
+
+```bash
+# Table 4 / Table 28 — one training-free cell (host × augment × model)
+python scripts/run_training_free_full_table.py \
+  --target llama3-8b --method rtn --augments dbaf+pcsa_tf \
+  --out outputs/G8-training-free-full/llama3-8b/rtn_dbaf+pcsa_tf
+# ...sweep all cells, then assemble the host matrix:
+python scripts/aggregate_host_matrix.py
+
+# §4.5 — SwinIR-×3 negative prediction (training-free RTN+DBAF)
+python scripts/run_training_free_swinir.py --scale 3 \
+  --pretrained CompSRT/experiments/<SwinIR-x3.pth> --dataset <Set5_HR_dir>
+
+# Training-free SAM-B + DBAF
+python scripts/run_training_free_sam.py --model-type vit_b --sam-ckpt ckpt/sam_vit_b_01ec64.pth
+```
+
+Each driver takes explicit `--` arguments (model, dataset, output paths); nothing is
+hardcoded. Model/dataset locations are prepared in §1–§3.
+
+### Author-response / reviewer-discussion evidence
+
+The added analyses requested during review — rotation ±DBAF 2×2, CLIP/Whisper/DiT
+breadth, random seeds, distribution shift, PCSA compactness site-hunt, descriptor
+ablation, and the threshold/AUC robustness checks — live under
+[`cross_arch_generalization/`](cross_arch_generalization/README.md). That README maps
+each reviewer question to its script and committed result JSON, and gives run
+instructions (a zero-GPU tier reproduces the headline robustness/AUC numbers in
+seconds from the committed per-layer statistics). All result JSONs are committed under
+`cross_arch_generalization/results/`.
 
 ---
 

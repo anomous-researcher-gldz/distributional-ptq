@@ -9,9 +9,11 @@ alpha and blows up as alpha->0 -- explaining why the analytic optimum
 underclips catastrophically while the reconstruction-selected alpha is high.
 """
 import sys, json
+import os as _os_repo
+_REPO_ROOT = _os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.abspath(__file__))))
 import numpy as np, torch
 torch.set_grad_enabled(False)
-REPO="/home/ubuntu/distributional-ptq"; sys.path.insert(0,REPO)
+REPO=_REPO_ROOT; sys.path.insert(0,REPO)
 from ahcptq.quantization.fake_quant import is_like_normal_plus_3sigma_outliers
 QMAX=7
 ALPHAS=[0.02,0.05,0.07,0.10,0.15,0.20,0.25,0.30,0.40,0.50,0.75,0.95]

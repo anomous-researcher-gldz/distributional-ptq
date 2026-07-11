@@ -20,12 +20,14 @@ Two hypotheses, both measured here:
      the terminal-trajectory error ordering matches FID, not single-step NMSE.
 """
 import sys, copy, json
+import os as _os_repo
+_REPO_ROOT = _os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.abspath(__file__))))
 import numpy as np, torch, torch.nn as nn
 torch.set_grad_enabled(False)
-REPO="/home/ubuntu/distributional-ptq"; sys.path.insert(0,REPO); sys.path.insert(0,REPO+"/FlatQuant")
+REPO=_REPO_ROOT; sys.path.insert(0,REPO); sys.path.insert(0,REPO+"/FlatQuant")
 from flatquant.baselines.rtn import _quantize_per_channel_with_dbaf, _quantize_tensor_uniform
 DEV="cuda"
-OUT="/home/ubuntu/distributional-ptq/cross_arch_generalization/results/alpha_dit_diagnosis_results.json"
+OUT=_REPO_ROOT + "/cross_arch_generalization/results/alpha_dit_diagnosis_results.json"
 GRID=[0.25,0.3,0.5,0.75,0.95]
 BITS=4
 

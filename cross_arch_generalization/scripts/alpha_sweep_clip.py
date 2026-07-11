@@ -6,12 +6,14 @@ CIFAR-100 zero-shot top-1 at each alpha to confirm the reconstruction-selected
 alpha coincides with the task-optimal alpha (expected for a discriminative model).
 """
 import sys, copy, json
+import os as _os_repo
+_REPO_ROOT = _os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.abspath(__file__))))
 import numpy as np, torch, torch.nn as nn, torch.nn.functional as F
 torch.set_grad_enabled(False)
-REPO="/home/ubuntu/distributional-ptq"; sys.path.insert(0,REPO); sys.path.insert(0,REPO+"/FlatQuant")
+REPO=_REPO_ROOT; sys.path.insert(0,REPO); sys.path.insert(0,REPO+"/FlatQuant")
 from flatquant.baselines.rtn import _quantize_per_channel_with_dbaf
 DEV="cuda"
-OUT="/home/ubuntu/distributional-ptq/cross_arch_generalization/results/alpha_sweep_clip_results.json"
+OUT=_REPO_ROOT + "/cross_arch_generalization/results/alpha_sweep_clip_results.json"
 from transformers import CLIPModel, CLIPProcessor
 from datasets import load_dataset
 MID="openai/clip-vit-large-patch14"

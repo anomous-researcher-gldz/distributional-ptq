@@ -8,9 +8,11 @@ PCSA site: compactness c at the vision attention q-projection -> predicts
 whether PCSA should fire (c<=0.4) or self-disable (c>0.4) on this family.
 """
 import sys, copy, json, pathlib
+import os as _os_repo
+_REPO_ROOT = _os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.abspath(__file__))))
 import numpy as np, torch, torch.nn as nn, torch.nn.functional as F
 torch.set_grad_enabled(False)
-REPO = "/home/ubuntu/distributional-ptq"
+REPO = _REPO_ROOT
 sys.path.insert(0, REPO); sys.path.insert(0, REPO + "/FlatQuant")
 from flatquant.baselines.rtn import _quantize_tensor_uniform, _quantize_per_channel_with_dbaf
 DEV = "cuda"
@@ -115,6 +117,6 @@ print(f"\n[CLIP] PCSA-site compactness (vision q_proj): c={c:.3f}±{cs:.3f} "
       f"-> PCSA {'FIRE' if c<=0.4 else 'SKIP'}", flush=True)
 
 _tag = "_a025" if abs(ALPHA-0.25)<1e-9 else ""
-out=f"/home/ubuntu/distributional-ptq/cross_arch_generalization/results/clip_flagship{_tag}_results.json"
+out=f"{_REPO_ROOT}/cross_arch_generalization/results/clip_flagship{_tag}_results.json"
 json.dump(results,open(out,"w"),indent=2)
 print(f"\nSaved -> {out}\n{json.dumps(results,indent=2)}")

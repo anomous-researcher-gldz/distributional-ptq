@@ -17,12 +17,14 @@ compactness ratio (K=4 K-means / permute-dims baseline) from q1_q3_llama.py.
     C4 swap in Q1). Also compactness at the PCSA site per regime.
 """
 import json, gc
+import os as _os_repo
+_REPO_ROOT = _os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.abspath(__file__))))
 import numpy as np, torch, torch.nn as nn
 torch.set_grad_enabled(False)
 MODEL = "NousResearch/Meta-Llama-3-8B"
 CAP = 120_000
 SITE = "model.layers.0.self_attn.q_proj"
-OUT = "/home/ubuntu/distributional-ptq/cross_arch_generalization/results/seed_and_shift_results.json"
+OUT = _REPO_ROOT + "/cross_arch_generalization/results/seed_and_shift_results.json"
 
 def profile(x, eps=1e-8):
     flat = x.detach().float().reshape(-1)

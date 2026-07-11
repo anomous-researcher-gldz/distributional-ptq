@@ -5,12 +5,14 @@ on encoder output vs FP over calibration audio. Task metric = WER at W3 (the
 bit-width where DBAF matters most) computed at each alpha to confirm alignment.
 """
 import sys, copy, json, io, re, string
+import os as _os_repo
+_REPO_ROOT = _os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.abspath(__file__))))
 import numpy as np, torch, torch.nn as nn
 torch.set_grad_enabled(False)
-REPO="/home/ubuntu/distributional-ptq"; sys.path.insert(0,REPO); sys.path.insert(0,REPO+"/FlatQuant")
+REPO=_REPO_ROOT; sys.path.insert(0,REPO); sys.path.insert(0,REPO+"/FlatQuant")
 from flatquant.baselines.rtn import _quantize_per_channel_with_dbaf
 DEV="cuda"; import jiwer, soundfile as sf
-OUT="/home/ubuntu/distributional-ptq/cross_arch_generalization/results/alpha_sweep_whisper_results.json"
+OUT=_REPO_ROOT + "/cross_arch_generalization/results/alpha_sweep_whisper_results.json"
 from transformers import WhisperForConditionalGeneration, WhisperProcessor
 from datasets import load_dataset, Audio
 MID="openai/whisper-small"

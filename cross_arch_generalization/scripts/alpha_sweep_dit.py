@@ -11,12 +11,14 @@ same T=3sigma, M=percentile_99.9, p_out=Pr(|x|>T) statistics and aggregated
 (median) across Linear weights.
 """
 import sys, copy, json
+import os as _os_repo
+_REPO_ROOT = _os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.dirname(_os_repo.path.abspath(__file__))))
 import numpy as np, torch, torch.nn as nn
 torch.set_grad_enabled(False)
-REPO="/home/ubuntu/distributional-ptq"; sys.path.insert(0,REPO); sys.path.insert(0,REPO+"/FlatQuant")
+REPO=_REPO_ROOT; sys.path.insert(0,REPO); sys.path.insert(0,REPO+"/FlatQuant")
 from flatquant.baselines.rtn import _quantize_tensor_uniform, _quantize_per_channel_with_dbaf
 DEV="cuda"
-OUT="/home/ubuntu/distributional-ptq/cross_arch_generalization/results/alpha_sweep_dit_results.json"
+OUT=_REPO_ROOT + "/cross_arch_generalization/results/alpha_sweep_dit_results.json"
 from diffusers import DiTTransformer2DModel
 t=DiTTransformer2DModel.from_pretrained("facebook/DiT-XL-2-256", subfolder="transformer",
     torch_dtype=torch.float32).to(DEV).eval()

@@ -2,8 +2,8 @@
 
 Analysis run for the EMNLP/ARR 2026 author response to *"From Distribution to
 Decision: A Diagnostic for Composable PTQ Primitives."* Each script is
-self-contained and writes a JSON to `results/`. Numbers here back the rebuttal
-claims (breadth, calibration protocol, robustness, generalization). Nothing here
+self-contained and writes a JSON to `results/`. Numbers here back the author-response
+(reviewer-discussion) claims (breadth, calibration protocol, robustness, generalization). Nothing here
 contradicts the submitted paper; every run confirms a submitted claim or answers a
 reviewer question.
 
