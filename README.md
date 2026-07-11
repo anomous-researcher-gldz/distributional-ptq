@@ -69,16 +69,16 @@ Save to `ckpt/`:
 | SAM-B       | https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth (official Meta) |
 | SAM-L       | https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth (official Meta) |
 | SAM-H       | https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth (official Meta) |
-| Faster-RCNN | mmdetection model zoo (public) |
-| YOLOX       | mmdetection model zoo (public) |
-| HDETR       | H-Deformable-DETR release / mmdet (public) |
-| DINO        | DINO (detection) release / mmdet (public) |
+| Faster-RCNN | [mmdetection model zoo](https://mmdetection.readthedocs.io/en/latest/model_zoo.html) (public) |
+| YOLOX       | [mmdetection model zoo](https://mmdetection.readthedocs.io/en/latest/model_zoo.html) (public) |
+| HDETR       | [H-Deformable-DETR](https://github.com/HDETR/H-Deformable-DETR) project (public) |
+| DINO        | [DINO](https://github.com/IDEA-Research/DINO) detection release (public) |
 
 The three SAM checkpoints are the official Meta releases (`facebookresearch/segment-anything`).
-The four SAM-prompting detectors are standard public checkpoints; the exact model
-configs are in `projects/instance_segment_anything/`, and downloads are in the
-[mmdetection model zoo](https://mmdetection.readthedocs.io/en/latest/model_zoo.html)
-and the Instance-Segment-Anything project on which that directory is based.
+The four SAM-prompting detectors are standard public checkpoints assembled by the
+Instance-Segment-Anything project on which `projects/instance_segment_anything/` is
+based; that directory holds the exact configs (Faster R-CNN and YOLOX are also in the
+[mmdetection model zoo](https://mmdetection.readthedocs.io/en/latest/model_zoo.html)).
 
 ### 1.4 Run Experiments
 
