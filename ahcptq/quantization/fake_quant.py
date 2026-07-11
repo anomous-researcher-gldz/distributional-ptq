@@ -124,8 +124,9 @@ def compute_alpha_star(
     p_out = compute_p_out(x, T)
     p_in = 1.0 - p_out
 
-    alpha_star = (p_out * T) / ((M - T) * p_in + eps)
-    # print(p_in,p_out,alpha_star)
+    # closed form from Eq. (alpha-star): cube root of the MSE-proxy ratio.
+    ratio = (p_out * T) / ((M - T) * p_in + eps)
+    alpha_star = ratio ** (1.0 / 3.0)
     # alpha_star = torch.clamp(alpha_star, alpha_min, alpha_max)
     return alpha_star
 

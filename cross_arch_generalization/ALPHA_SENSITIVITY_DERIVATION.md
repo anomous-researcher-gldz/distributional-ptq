@@ -59,9 +59,10 @@ ratio), not a fold-geometry quantity, so it cannot be obtained from T, M, p_out
 alone. We tested the natural first-principles proxy, the energy ratio
 `λ ≈ E[x²|outlier]/E[x²|bulk]`, on real LLaMA-3-8B activations
 (`alpha_sensitivity_check.py`): it measures **λ ≈ 28**, which through
-α*_sens = λ^{1/3}·α\* predicts α ≈ **0.65**, not the operating 0.25. (We also could
-not reproduce the paper's α\*≈0.07 from calibration 99.9-percentile stats; we get
-α\* ≈ 0.2, consistent with the paper's α\* using M = max magnitude.) So:
+α*_sens = λ^{1/3}·α\* predicts α ≈ **0.65**, not the operating 0.25. (The closed form
+itself gives **α\* ≈ 0.20** on LLaMA-3-8B activations and **0.18** on Qwen — a tight
+lower bound just below the operating 0.25; reaching 0.25 needs only λ≈2, whereas the
+crude energy-ratio proxy overshoots.) So:
 
 - The **form** α*_sens = λ^{1/3}·α\* and the **λ≥1 ⇒ lower-bound** result are exact.
 - A **first-principles numerical prediction** of the operating α is **not** claimed;
