@@ -1,13 +1,13 @@
-# Towards a Unified Distribution-Centric Post-Training Quantization
+# From Distribution to Decision: A Diagnostic for Composable PTQ Primitives
 
 ## Abstract
 
-Post-training quantization is widely used for efficient deployment of models, yet existing methods remain largely architecture or task-specific. In contrast to this model/task-specific view of quantization, we find that across tasks and model families, quantization errors repeatedly arise from similar distributional properties such as dense cores and sparse outliers, and input-conditioned distribution shifts. Based on this, we propose viewing quantization through a unified distribution-centered rather than model or task-centered perspective and introduce a novel Dual-Band Affine Folding (DBAF) for outlier suppression and Prompt-Conditioned Scale Anchoring (PCSA) for adaptive scaling to prompt distribution shifts. Applied to the Segment Anything Model, Large Language Models and image super resolution under W4A4 quantization, our method improves performance over prior baselines, especially for SAM as distributions with outliers are largely unaddressed in SAM quantization, validating distribution-centric techniques as effective strategies for low-bit quantization.
+Post-training quantization (PTQ) methods are typically architecture-specific. Yet the distributional pathologies they target, dense cores with sparse outliers and input-conditioned activation clusters, recur across model families. We argue PTQ should be distribution-specific instead. We propose two composable primitives: Dual-Band Affine Folding (DBAF) for outliers and Prompt-Conditioned Scale Anchoring (PCSA) for clusters. A two-statistic diagnostic dispatches them from one calibration pass. A per-tensor outlier gate decides where DBAF applies; a per-prompt compactness ratio decides where PCSA applies. The diagnostic is a selection heuristic, not a calibrated predictor. Four predictive checks confirm the dispatch: a rotation cliff on a seven-host LLaMA-3-8B W4A4 matrix, cross-family transfer to Qwen-2.5-7B, per-site gating on SAM-B (+4.8 mAP) and LLaMA-3-8B KV-cache (+5pp NIAH at 8k), and a negative SwinIR-×3 prediction at training-free W4. Both primitives are training-free and calibrate in seconds.
 
 ## Repository Structure
 
 ```
-unifying-ptq/
+distributional-ptq/
 ├── ahcptq/          # AHCPTQ: SAM quantization with DBAF+PCSA
 ├── FlatQuant/       # FlatQuant: LLM quantization with DBAF+PCSA
 ├── CompSRT/         # CompSRT: Image super-resolution quantization with DBAF
