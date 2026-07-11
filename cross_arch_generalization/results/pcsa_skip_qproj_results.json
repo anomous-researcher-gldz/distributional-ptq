@@ -1,0 +1,18 @@
+{
+  "site": "model.layers.15.self_attn.q_proj",
+  "compactness_regime": "SKIP (c~0.79 > 0.4)",
+  "n_prompts": 48,
+  "K": 4,
+  "int4_qmax": 7,
+  "global_scale_nmse": 0.639892578125,
+  "per_cluster_pcsa_nmse": 0.6203485131263733,
+  "pcsa_improvement_pct": 3.0542728055847004,
+  "per_cluster_scales": [
+    14.53,
+    15.27,
+    12.98,
+    12.25
+  ],
+  "global_scale": 15.2734375,
+  "verdict": "near-no-op: per-cluster scales ~ global -> SKIP is correct"
+}
