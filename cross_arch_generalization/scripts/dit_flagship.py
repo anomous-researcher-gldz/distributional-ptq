@@ -16,6 +16,7 @@ torch.set_grad_enabled(False)
 REPO="/home/ubuntu/distributional-ptq"; sys.path.insert(0,REPO); sys.path.insert(0,REPO+"/FlatQuant")
 from flatquant.baselines.rtn import _quantize_tensor_uniform, _quantize_per_channel_with_dbaf
 DEV="cuda"
+ALPHA = float(sys.argv[1]) if len(sys.argv) > 1 else 0.25   # `python dit_flagship.py [alpha]`
 from diffusers import DiTTransformer2DModel
 t=DiTTransformer2DModel.from_pretrained("facebook/DiT-XL-2-256", subfolder="transformer",
     torch_dtype=torch.float32).to(DEV).eval()
@@ -39,8 +40,8 @@ def quantize(model,bits,mode):
         if not isinstance(mod,nn.Linear) or mod.weight.dim()!=2: continue
         w=mod.weight.data; n+=1
         if mode=="rtn": wq=_quantize_tensor_uniform(w,bits,per_channel=True)
-        elif mode=="dbaf_forced": wq=_quantize_per_channel_with_dbaf(w,bits,alpha=0.25)
-        elif mode=="dbaf_gated": wq=_quantize_per_channel_with_dbaf(w,bits,alpha=0.25,gate_frac3_max=2e-2)
+        elif mode=="dbaf_forced": wq=_quantize_per_channel_with_dbaf(w,bits,alpha=ALPHA)
+        elif mode=="dbaf_gated": wq=_quantize_per_channel_with_dbaf(w,bits,alpha=ALPHA,gate_frac3_max=2e-2)
         mod.weight.data=wq.to(mod.weight.dtype)
     return n
 
@@ -97,6 +98,7 @@ results["pcsa_site_compactness_attn_q"]=dict(c=round(c,3),std=round(cs,3),
 print(f"\n[DiT] PCSA-site compactness (block0 attn q, class-conditioned): "
       f"c={c:.3f}±{cs:.3f} -> {'FIRE' if c<=0.4 else 'SKIP'}",flush=True)
 
-out="/home/ubuntu/distributional-ptq/cross_arch_generalization/results/dit_flagship_a025_results.json"
+_tag = "_a025" if abs(ALPHA-0.25)<1e-9 else ""
+out=f"/home/ubuntu/distributional-ptq/cross_arch_generalization/results/dit_flagship{_tag}_results.json"
 json.dump(results,open(out,"w"),indent=2)
 print(f"\nSaved -> {out}\n{json.dumps(results,indent=2)}")

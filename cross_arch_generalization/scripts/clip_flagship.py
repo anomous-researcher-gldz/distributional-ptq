@@ -15,6 +15,7 @@ sys.path.insert(0, REPO); sys.path.insert(0, REPO + "/FlatQuant")
 from flatquant.baselines.rtn import _quantize_tensor_uniform, _quantize_per_channel_with_dbaf
 DEV = "cuda"
 
+ALPHA = float(sys.argv[1]) if len(sys.argv) > 1 else 0.25   # `python clip_flagship.py [alpha]`
 from transformers import CLIPModel, CLIPProcessor
 from datasets import load_dataset
 MID = "openai/clip-vit-large-patch14"
@@ -55,9 +56,9 @@ def quantize(model, bits, mode):
         if mode == "rtn":
             wq = _quantize_tensor_uniform(w, bits, per_channel=True)
         elif mode == "dbaf_forced":
-            wq = _quantize_per_channel_with_dbaf(w, bits, alpha=0.25); n_fold += 1
+            wq = _quantize_per_channel_with_dbaf(w, bits, alpha=ALPHA); n_fold += 1
         elif mode == "dbaf_gated":
-            wq = _quantize_per_channel_with_dbaf(w, bits, alpha=0.25, gate_frac3_max=2e-2)
+            wq = _quantize_per_channel_with_dbaf(w, bits, alpha=ALPHA, gate_frac3_max=2e-2)
         mod.weight.data = wq.to(mod.weight.dtype)
     return n_lin
 
@@ -113,6 +114,7 @@ results["pcsa_site_compactness_q_proj"]=dict(c=round(c,3),std=round(cs,3),
 print(f"\n[CLIP] PCSA-site compactness (vision q_proj): c={c:.3f}±{cs:.3f} "
       f"-> PCSA {'FIRE' if c<=0.4 else 'SKIP'}", flush=True)
 
-out="/home/ubuntu/distributional-ptq/cross_arch_generalization/results/clip_flagship_a025_results.json"
+_tag = "_a025" if abs(ALPHA-0.25)<1e-9 else ""
+out=f"/home/ubuntu/distributional-ptq/cross_arch_generalization/results/clip_flagship{_tag}_results.json"
 json.dump(results,open(out,"w"),indent=2)
 print(f"\nSaved -> {out}\n{json.dumps(results,indent=2)}")

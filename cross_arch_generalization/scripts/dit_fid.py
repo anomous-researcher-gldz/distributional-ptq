@@ -15,6 +15,10 @@ from diffusers import DiTPipeline, DPMSolverMultistepScheduler
 from PIL import Image
 
 N=512; STEPS=25; BS=32
+# DBAF fold strength: `python dit_fid.py [alpha]` (default 0.25). alpha=0.75 gives the
+# outlier-protecting operating point DiT-XL FID needs (242.8->185.7); alpha=0.25 is the
+# single-pass-sweep pick, which under-selects for FID (242.8->275.1, worse).
+ALPHA = float(sys.argv[1]) if len(sys.argv) > 1 else 0.25
 OUT="/tmp/claude-1000/-home-ubuntu/629c24a1-ecff-4b3c-8a83-a9277305528e/scratchpad/dit_fid_imgs"
 pipe=DiTPipeline.from_pretrained("facebook/DiT-XL-2-256",torch_dtype=torch.float32).to(DEV)
 pipe.scheduler=DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
@@ -33,7 +37,7 @@ def quantize(bits,mode):
         if not isinstance(mod,nn.Linear) or mod.weight.dim()!=2: continue
         w=mod.weight.data; n+=1
         if mode=="rtn": wq=_quantize_tensor_uniform(w,bits,per_channel=True)
-        elif mode=="dbaf_forced": wq=_quantize_per_channel_with_dbaf(w,bits,alpha=0.25)
+        elif mode=="dbaf_forced": wq=_quantize_per_channel_with_dbaf(w,bits,alpha=ALPHA)
         mod.weight.data=wq.to(mod.weight.dtype)
     return n
 
@@ -64,6 +68,7 @@ for mode in ["rtn","dbaf_forced"]:
     print(f"  W4_{mode}: FID-to-FP = {fid:.3f}",flush=True)
 pipe.transformer.load_state_dict(orig)
 
-results["N"]=N; results["steps"]=STEPS
-json.dump(results,open("/home/ubuntu/distributional-ptq/cross_arch_generalization/results/dit_fid_a025_results.json","w"),indent=2)
+results["N"]=N; results["steps"]=STEPS; results["alpha"]=ALPHA
+_tag = "_a025" if abs(ALPHA-0.25)<1e-9 else ""
+json.dump(results,open(f"/home/ubuntu/distributional-ptq/cross_arch_generalization/results/dit_fid{_tag}_results.json","w"),indent=2)
 print(f"\n{json.dumps(results,indent=2)}\nsaved.")
