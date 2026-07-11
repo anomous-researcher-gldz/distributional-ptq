@@ -22,6 +22,7 @@ reviewer question.
 | **End-task gains under shift (W4A4 headline regime)** | `shift_endtask_w4a4.py` | `shift_endtask_w4a4_results.json` | DBAF recovers PPL to near-FP on all 5 shifts (WikiText 844→17.3, C4 805→24.6, code 420→4.8, multiling 1685→44.9, instr 732→18.3; α=0.25 frozen; reproduces paper 970→16.3) |
 | **End-task gains under shift** (W3 wt-only) | `shift_endtask_gains.py` | `shift_endtask_gains_results.json` | DBAF improves PPL on all 5 shifts (WikiText 141k→472, C4 19k→530, code 493k→112, multiling 992k→3089, instr 50k→397; α=0.25 frozen) |
 | **α selection sweep (paper's rule)** | `alpha_sweep_{clip,whisper,dit}.py` | `alpha_sweep_*_results.json` | recon sweep selects α≈0.25–0.3 for discriminative families |
+| **Sensitivity-weighted α\* correction (SQ6q W1)** | `alpha_sensitivity_check.py` + `ALPHA_SENSITIVITY_DERIVATION.md` | (stdout) | derives α\*_sens = λ^(1/3)·α\* (λ≥1 ⇒ α\* is a lower bound); energy-ratio λ≈28 does not predict 0.25, so λ kept empirical |
 | **Why reconstruction α-selection fails on DiT** | `alpha_dit_diagnosis.py` | `alpha_dit_diagnosis_results.json` | single-pass proxy ≠ generative FID (see below) |
 
 ## Key finding: DiT and the single-pass reconstruction proxy
