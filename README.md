@@ -272,6 +272,27 @@ See `CompSRT/README.md` for Docker/Singularity setup and statistical analysis sc
 
 ---
 
+## 4. Reproducing the Paper's Results
+
+Sections 1–3 above run the **trained/host** quantizers (AHCPTQ+DBAF+PCSA for SAM,
+FlatQuant+DBAF+PCSA for LLMs, CompSRT for SR). The paper's **training-free** headline
+results use dedicated drivers under `scripts/`:
+
+| Paper result | Driver |
+|---|---|
+| Table 4 — LLaMA-3-8B W4A4 rotation cliff, non-rotation cells (RTN/GPTQ/AWQ/SmoothQuant ± DBAF, the 16–33 wt2 band) | `scripts/run_training_free_full_table.py` → `scripts/aggregate_host_matrix.py` (rotation cells QuaRot/FlatQuant via §2) |
+| Table 19 / §4.5 — SwinIR-×3 negative prediction (−0.31 dB Set5, training-free RTN+DBAF) | `scripts/run_training_free_swinir.py` |
+| Table 28 — training-free composability (RTN/GPTQ/AWQ ± DBAF / PCSA-tf × 8 models) | `scripts/run_training_free_full_table.py` |
+| Training-free SAM-B + DBAF | `scripts/run_training_free_sam.py` |
+| SAM-B +4.8 mAP (AHCPTQ+DBAF+PCSA) | §1 (`ahcptq/solver/test_quant.py`) |
+
+The cross-architecture generalization study (rotation ±DBAF 2×2, CLIP/Whisper/DiT,
+random seeds, distribution shift, PCSA compactness site-hunt, and descriptor ablation)
+is under `cross_arch_generalization/scripts/`, with the computed result JSONs committed
+in `cross_arch_generalization/results/`.
+
+---
+
 ## Acknowledgments
 
 This work builds upon [AHCPTQ](https://github.com/Keio-CSG/AHCPTQ), [FlatQuant](https://github.com/ruikangliu/FlatQuant), and [CompSRT](https://github.com/anonymous-researcher-99/CompSRT).
