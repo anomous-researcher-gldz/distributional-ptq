@@ -1,8 +1,8 @@
 {
-  "alpha_star_est": 0.447,
+  "alpha_star_est": 0.325,
   "bits": 4,
   "grid": [
-    0.447,
+    0.325,
     0.25,
     0.3,
     0.5,
@@ -12,38 +12,38 @@
   ],
   "FP_top1": 73.68,
   "sweep": {
-    "0.447": {
-      "recon_nmse": 0.01228,
-      "top1": 71.64
+    "0.325": {
+      "recon_nmse": 0.00893,
+      "top1": 70.24
     },
     "0.25": {
-      "recon_nmse": 0.0088,
-      "top1": 71.24
+      "recon_nmse": 0.00883,
+      "top1": 71.36
     },
     "0.3": {
-      "recon_nmse": 0.00875,
-      "top1": 71.48
+      "recon_nmse": 0.00877,
+      "top1": 71.36
     },
     "0.5": {
-      "recon_nmse": 0.01198,
-      "top1": 71.24
+      "recon_nmse": 0.01208,
+      "top1": 71.32
     },
     "0.75": {
-      "recon_nmse": 0.0183,
-      "top1": 69.96
+      "recon_nmse": 0.01842,
+      "top1": 69.92
     },
     "0.95": {
-      "recon_nmse": 0.02628,
-      "top1": 64.6
+      "recon_nmse": 0.02638,
+      "top1": 64.56
     },
     "0.99": {
-      "recon_nmse": 0.03137,
-      "top1": 63.0
+      "recon_nmse": 0.03148,
+      "top1": 62.92
     }
   },
   "selected_alpha": 0.3,
   "selected": {
-    "recon_nmse": 0.00875,
-    "top1": 71.48
+    "recon_nmse": 0.00877,
+    "top1": 71.36
   }
 }

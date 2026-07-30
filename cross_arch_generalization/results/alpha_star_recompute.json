@@ -1,0 +1,20 @@
+{
+ "clip": {
+  "alpha_star": 0.325,
+  "alpha_star_prefix_bug": 0.447,
+  "committed_value": 0.447,
+  "n_row_samples": 1263
+ },
+ "whisper": {
+  "alpha_star": 0.315,
+  "alpha_star_prefix_bug": 0.432,
+  "committed_value": 0.432,
+  "n_row_samples": 1059
+ },
+ "dit": {
+  "alpha_star": 0.299,
+  "alpha_star_prefix_bug": 0.416,
+  "committed_value": 0.416,
+  "n_row_samples": 1964
+ }
+}

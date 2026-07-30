@@ -1,0 +1,167 @@
+{
+ "model": "meta-llama/Meta-Llama-3-8B",
+ "config": "W4A4, DBAF on weights+activations",
+ "note": "reproduction noise vs original runs ~2%; sub-2% gaps are not adjudicable",
+ "rows": [
+  {
+   "host": "rtn",
+   "corpus": "wt2",
+   "alpha": 0.25,
+   "measured": 16.43,
+   "paper": 16.31,
+   "json": 16.31,
+   "pct_vs_paper": 0.7,
+   "pct_vs_json": 0.7
+  },
+  {
+   "host": "rtn",
+   "corpus": "c4",
+   "alpha": 0.25,
+   "measured": 24.37,
+   "paper": 24.49,
+   "json": 24.49,
+   "pct_vs_paper": -0.5,
+   "pct_vs_json": -0.5
+  },
+  {
+   "host": "rtn",
+   "corpus": "wt2",
+   "alpha": 0.75,
+   "measured": 250.97,
+   "paper": 250.6,
+   "json": 250.6,
+   "pct_vs_paper": 0.1,
+   "pct_vs_json": 0.1
+  },
+  {
+   "host": "rtn",
+   "corpus": "c4",
+   "alpha": 0.75,
+   "measured": 302.25,
+   "paper": 310.08,
+   "json": 310.08,
+   "pct_vs_paper": -2.5,
+   "pct_vs_json": -2.5
+  },
+  {
+   "host": "gptq",
+   "corpus": "wt2",
+   "alpha": 0.25,
+   "measured": 30.46,
+   "paper": 32.65,
+   "json": 32.65,
+   "pct_vs_paper": -6.7,
+   "pct_vs_json": -6.7
+  },
+  {
+   "host": "gptq",
+   "corpus": "c4",
+   "alpha": 0.25,
+   "measured": 53.9,
+   "paper": 53.43,
+   "json": 49.06,
+   "pct_vs_paper": 0.9,
+   "pct_vs_json": 9.9
+  },
+  {
+   "host": "gptq",
+   "corpus": "wt2",
+   "alpha": 0.75,
+   "measured": 306.11,
+   "paper": 348.66,
+   "json": 348.66,
+   "pct_vs_paper": -12.2,
+   "pct_vs_json": -12.2
+  },
+  {
+   "host": "gptq",
+   "corpus": "c4",
+   "alpha": 0.75,
+   "measured": 362.03,
+   "paper": 363.25,
+   "json": 363.25,
+   "pct_vs_paper": -0.3,
+   "pct_vs_json": -0.3
+  },
+  {
+   "host": "awq",
+   "corpus": "wt2",
+   "alpha": 0.25,
+   "measured": 17.04,
+   "paper": 17.02,
+   "json": 17.02,
+   "pct_vs_paper": 0.1,
+   "pct_vs_json": 0.1
+  },
+  {
+   "host": "awq",
+   "corpus": "c4",
+   "alpha": 0.25,
+   "measured": 25.99,
+   "paper": 25.84,
+   "json": 25.97,
+   "pct_vs_paper": 0.6,
+   "pct_vs_json": 0.1
+  },
+  {
+   "host": "awq",
+   "corpus": "wt2",
+   "alpha": 0.75,
+   "measured": 560.01,
+   "paper": 579.96,
+   "json": 579.96,
+   "pct_vs_paper": -3.4,
+   "pct_vs_json": -3.4
+  },
+  {
+   "host": "awq",
+   "corpus": "c4",
+   "alpha": 0.75,
+   "measured": 534.42,
+   "paper": 520.03,
+   "json": 520.03,
+   "pct_vs_paper": 2.8,
+   "pct_vs_json": 2.8
+  },
+  {
+   "host": "smoothquant",
+   "corpus": "wt2",
+   "alpha": 0.25,
+   "measured": 17.2,
+   "paper": 17.32,
+   "json": 17.32,
+   "pct_vs_paper": -0.7,
+   "pct_vs_json": -0.7
+  },
+  {
+   "host": "smoothquant",
+   "corpus": "c4",
+   "alpha": 0.25,
+   "measured": 26.99,
+   "paper": 27.1,
+   "json": 26.05,
+   "pct_vs_paper": -0.4,
+   "pct_vs_json": 3.6
+  },
+  {
+   "host": "smoothquant",
+   "corpus": "wt2",
+   "alpha": 0.75,
+   "measured": 1513.97,
+   "paper": 5263.7,
+   "json": 1477.98,
+   "pct_vs_paper": -71.2,
+   "pct_vs_json": 2.4
+  },
+  {
+   "host": "smoothquant",
+   "corpus": "c4",
+   "alpha": 0.75,
+   "measured": 994.11,
+   "paper": 3251.95,
+   "json": 1005.35,
+   "pct_vs_paper": -69.4,
+   "pct_vs_json": -1.1
+  }
+ ]
+}

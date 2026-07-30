@@ -1,0 +1,17 @@
+{
+ "model": "meta-llama/Meta-Llama-3-8B",
+ "config": "SmoothQuant(alpha=0.5) + DBAF, W4A4",
+ "paper_value_at_0p75": 5263.7,
+ "json_value_at_0p75": 1477.98,
+ "control_value_at_0p25": 17.32,
+ "cells": {
+  "0.25": {
+   "wikitext2_ppl": 17.2,
+   "seconds": 43.3
+  },
+  "0.75": {
+   "wikitext2_ppl": 1513.97,
+   "seconds": 41.8
+  }
+ }
+}

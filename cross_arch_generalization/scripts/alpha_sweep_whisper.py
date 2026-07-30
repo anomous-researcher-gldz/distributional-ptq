@@ -11,6 +11,8 @@ import numpy as np, torch, torch.nn as nn
 torch.set_grad_enabled(False)
 REPO=_REPO_ROOT; sys.path.insert(0,REPO); sys.path.insert(0,REPO+"/FlatQuant")
 from flatquant.baselines.rtn import _quantize_per_channel_with_dbaf
+sys.path.insert(0,_os_repo.path.dirname(_os_repo.path.abspath(__file__)))
+import astar_common
 DEV="cuda"; import jiwer, soundfile as sf
 OUT=_REPO_ROOT + "/cross_arch_generalization/results/alpha_sweep_whisper_results.json"
 from transformers import WhisperForConditionalGeneration, WhisperProcessor
@@ -40,17 +42,7 @@ def transcribe(bs=16):
         hyps+=proc.batch_decode(ids,skip_special_tokens=True)
     return [_norm(h) for h in hyps]
 def astar_est():
-    vals=[]
-    for name,mod in model.named_modules():
-        if not isinstance(mod,nn.Linear) or mod.weight.dim()!=2 or "proj_out" in name: continue
-        w=mod.weight.data.float()
-        for r in range(0,w.shape[0],max(1,w.shape[0]//6)):
-            row=w[r].abs(); T=3*row.std(); M=torch.quantile(row,0.999)
-            p_out=(row>T).float().mean(); p_in=1-p_out
-            if p_out>0 and M>T:
-                a=torch.pow(T*p_out/((M-T)*p_in+1e-12),1/3.0)
-                if torch.isfinite(a): vals.append(a.item())
-    return float(np.median(vals)) if vals else 0.07
+    return astar_common.alpha_star_model(model, skip=("proj_out",))[0]
 def quant_forced(bits,alpha):
     for name,mod in model.named_modules():
         if not isinstance(mod,nn.Linear) or mod.weight.dim()!=2 or "proj_out" in name: continue
