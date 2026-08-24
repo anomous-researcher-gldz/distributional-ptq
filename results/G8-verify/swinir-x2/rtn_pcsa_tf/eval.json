@@ -1,0 +1,10 @@
+{
+  "target": "swinir-x2",
+  "method": "rtn",
+  "augments": "pcsa_tf",
+  "metrics": {
+    "set5_psnr_db": 31.935378134708934,
+    "urban100_psnr_db": 28.088358437595158
+  },
+  "wallclock_seconds": 105.92476034164429
+}
